@@ -9,7 +9,7 @@ import UIKit
 #endif
 import SwiftUI
 
-protocol ViewRepresentable: MPViewRepresentable {
+public protocol ViewRepresentable: MPViewRepresentable {
     func makeView(context: Self.Context) -> MPView
     func updateView(_ view: MPView, context: Self.Context)
 }
@@ -25,10 +25,10 @@ extension ViewRepresentable {
 }
 #else
 extension ViewRepresentable {
-    func makeUIView(context: Self.Context) -> UIView {
+    public func makeUIView(context: Self.Context) -> UIView {
         makeView(context: context)
     }
-    func updateUIView(_ uiView: UIView, context: Self.Context) {
+    public func updateUIView(_ uiView: UIView, context: Self.Context) {
         updateView(uiView, context: context)
     }
 }

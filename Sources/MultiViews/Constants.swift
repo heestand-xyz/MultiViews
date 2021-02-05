@@ -5,7 +5,7 @@
 import CoreGraphics
 import SwiftUI
 
-extension CGFloat {
+public extension CGFloat {
     
     static var onePixel: CGFloat {
         #if os(macOS)
@@ -17,7 +17,7 @@ extension CGFloat {
 
 }
 
-extension Color {
+public extension Color {
     
     static let nearClear: Color = Color(.displayP3, white: 0.5, opacity: 0.001)
     

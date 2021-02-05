@@ -13,23 +13,23 @@ import UIKit
 import SwiftUI
 
 #if os(macOS)
-typealias MPView = NSView
+public typealias MPView = NSView
 #else
-typealias MPView = UIView
+public typealias MPView = UIView
 #endif
 
 #if os(macOS)
-typealias MPViewController = NSViewController
-typealias MPHostingView = NSHostingView
-typealias MPViewRepresentable = NSViewRepresentable
+public typealias MPViewController = NSViewController
+public typealias MPHostingView = NSHostingView
+public typealias MPViewRepresentable = NSViewRepresentable
 #else
-typealias MPViewController = UIViewController
-typealias MPHostingView = UIHostingController
-typealias MPViewRepresentable = UIViewRepresentable
+public typealias MPViewController = UIViewController
+public typealias MPHostingView = UIHostingController
+public typealias MPViewRepresentable = UIViewRepresentable
 #endif
 
 #if os(macOS)
-extension MPHostingView {
+public extension MPHostingView {
     var view: MPView { self }
 }
 #endif

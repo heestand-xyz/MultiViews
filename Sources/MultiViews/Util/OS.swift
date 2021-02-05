@@ -9,28 +9,28 @@ import UIKit
 #endif
 import SwiftUI
 
-var iOS: Bool {
+public var iOS: Bool {
     #if os(iOS)
     return true
     #else
     return false
     #endif
 }
-var tvOS: Bool {
+public var tvOS: Bool {
     #if os(tvOS)
     return true
     #else
     return false
     #endif
 }
-var watchOS: Bool {
+public var watchOS: Bool {
     #if os(watchOS)
     return true
     #else
     return false
     #endif
 }
-var macOS: Bool {
+public var macOS: Bool {
     #if os(macOS)
     return true
     #else

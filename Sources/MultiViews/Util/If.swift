@@ -4,7 +4,7 @@
 
 import SwiftUI
 
-extension View {
+public extension View {
     func `if`<Content: View>(_ this: Bool,
                              _ contentIf: (Self) -> (Content),
                              else contentElse: ((Self) -> (Content))? = nil) -> AnyView {

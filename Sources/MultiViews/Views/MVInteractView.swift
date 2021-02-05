@@ -9,20 +9,20 @@ import AppKit
 #endif
 import SwiftUI
 
-enum Interaction {
+public enum MVInteraction {
     case started
     case endedInside
     case endedOutside
     var ended: Bool { self != .started }
 }
     
-struct InteractView: ViewRepresentable {
+public struct MVInteractView: ViewRepresentable {
     
-    let interacted: (Interaction) -> ()
+    let interacted: (MVInteraction) -> ()
     let interacting: ((CGPoint) -> ())?
     let scrolling: ((CGPoint) -> ())?
 
-    init(interacted: @escaping (Interaction) -> (),
+    public init(interacted: @escaping (MVInteraction) -> (),
          interacting: ((CGPoint) -> ())? = nil,
          scrolling: ((CGPoint) -> ())? = nil) {
         self.interacted = interacted
@@ -30,20 +30,20 @@ struct InteractView: ViewRepresentable {
         self.scrolling = scrolling
     }
     
-    func makeView(context: Context) -> MPView {
+    public func makeView(context: Context) -> MPView {
         MainInteractView(interacted: interacted, interacting: interacting, scrolling: scrolling)
     }
-    func updateView(_ view: MPView, context: Context) {}
+    public func updateView(_ view: MPView, context: Context) {}
     
 }
 
 class MainInteractView: MPView {
     
-    let interacted: (Interaction) -> ()
+    let interacted: (MVInteraction) -> ()
     let interacting: ((CGPoint) -> ())?
     let scrolling: ((CGPoint) -> ())?
     
-    init(interacted: @escaping (Interaction) -> (),
+    init(interacted: @escaping (MVInteraction) -> (),
          interacting: ((CGPoint) -> ())?,
          scrolling: ((CGPoint) -> ())? = nil) {
         self.interacted = interacted
