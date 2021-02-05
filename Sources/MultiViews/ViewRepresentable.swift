@@ -16,10 +16,10 @@ public protocol ViewRepresentable: MPViewRepresentable {
 
 #if os(macOS)
 extension ViewRepresentable {
-    func makeNSView(context: Self.Context) -> NSView {
+    public func makeNSView(context: Self.Context) -> NSView {
         makeView(context: context)
     }
-    func updateNSView(_ nsView: NSView, context: Self.Context) {
+    public func updateNSView(_ nsView: NSView, context: Self.Context) {
         updateView(nsView, context: context)
     }
 }

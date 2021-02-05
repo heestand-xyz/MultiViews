@@ -15,7 +15,7 @@ import SwiftUI
 #if os(iOS)
 typealias MPScrollView = UIScrollView
 #elseif os(macOS)
-typealias MPScrollView = JNSScrollView
+typealias MPScrollView = MPNSScrollView
 #endif
 
 public struct MVScrollView<Content: View>: ViewRepresentable {
@@ -41,7 +41,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         #if os(iOS)
         scrollView = UIScrollView()
         #elseif os(macOS)
-        scrollView = JNSScrollView()
+        scrollView = MPNSScrollView()
         
         #endif
         
