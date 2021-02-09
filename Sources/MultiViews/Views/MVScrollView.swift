@@ -91,7 +91,9 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         
     }
     
-    public func updateView(_ view: MPView, context: Context) {}
+    public func updateView(_ view: MPView, context: Context) {
+        let scrollView: MPScrollView = view as! MPScrollView
+    }
     
     public func makeCoordinator() -> MPScrollViewCoordinator {
         MPScrollViewCoordinator(padding: padding, pageWidth: pageWidth, scrollOffset: $scrollOffset)
