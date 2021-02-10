@@ -19,6 +19,24 @@ public typealias MPView = UIView
 #endif
 
 #if os(macOS)
+public typealias MPImage = NSImage
+public typealias MPImageView = NSImageView
+extension Image {
+    init(image: NSImage) {
+        self.init(nsImage: image)
+    }
+}
+#else
+public typealias MPImage = UIImage
+public typealias MPImageView = UIImageView
+extension Image {
+    init(image: UIImage) {
+        self.init(uiImage: image)
+    }
+}
+#endif
+
+#if os(macOS)
 public typealias MPViewController = NSViewController
 public typealias MPHostingView = NSHostingView
 public typealias MPViewRepresentable = NSViewRepresentable
