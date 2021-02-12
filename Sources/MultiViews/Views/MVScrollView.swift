@@ -48,7 +48,6 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         scrollView = UIScrollView()
         #elseif os(macOS)
         scrollView = MPNSScrollView()
-        
         #endif
         
         #if os(macOS)
@@ -98,9 +97,13 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     }
     
     public func updateView(_ view: MPView, context: Context) {
-//        let scrollView: MPScrollView = view as! MPScrollView
-        print("MV Scroll View - Update - Padding:", padding)
+        let scrollView: MPScrollView = view as! MPScrollView
         context.coordinator.padding = padding
+        #if os(iOS)
+        scrollView.contentInset = padding
+        #elseif os(macOS)
+        scrollView.contentInsets = padding
+        #endif
     }
     
     public func makeCoordinator() -> MPScrollViewCoordinator {
