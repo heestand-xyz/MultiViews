@@ -29,19 +29,28 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     let padding: MPEdgeInsets
     let pageWidth: CGFloat
     @Binding var scrollOffset: CGPoint
-    
-    let content: () -> (Content)
-    let host: MPHostingView<Content>
+    @Binding var scrollContainerSize: CGSize
+    @Binding var scrollContentSize: CGSize
 
-    public init(padding: MPEdgeInsets, pageWidth: CGFloat, scrollOffset: Binding<CGPoint>, content: @escaping () -> (Content)) {
+    let content: () -> (Content)
+
+    public init(padding: MPEdgeInsets,
+                pageWidth: CGFloat,
+                scrollOffset: Binding<CGPoint>,
+                scrollContainerSize: Binding<CGSize>,
+                scrollContentSize: Binding<CGSize>,
+                content: @escaping () -> (Content)) {
         self.padding = padding
         self.pageWidth = pageWidth
         _scrollOffset = scrollOffset
+        _scrollContainerSize = scrollContainerSize
+        _scrollContentSize = scrollContentSize
         self.content = content
-        host = MPHostingView(rootView: content())
     }
     
     public func makeView(context: Context) -> MPView {
+        
+        let host = MPHostingView(rootView: content())
         
         let scrollView: MPScrollView
         #if os(iOS)
@@ -97,13 +106,31 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     }
     
     public func updateView(_ view: MPView, context: Context) {
+        
         let scrollView: MPScrollView = view as! MPScrollView
+        
+        let couldNotScroll: Bool = scrollView.contentSize.width < scrollContainerSize.width && scrollView.contentSize.height < scrollContainerSize.height
+        let canNotScroll: Bool = scrollContentSize.width < scrollContainerSize.width && scrollContentSize.height < scrollContainerSize.height
+        #if os(iOS)
+        scrollView.contentSize = scrollContentSize
+        if !couldNotScroll && canNotScroll {
+            scrollView.setContentOffset(.zero, animated: true)
+        }
+        #elseif os(macOS)
+        scrollView.setBoundsSize(scrollContentSize)
+        if !couldNotScroll && canNotScroll {
+        } else {
+            scrollView.setBoundsOrigin(.zero)
+        }
+        #endif
+        
         context.coordinator.padding = padding
         #if os(iOS)
         scrollView.contentInset = padding
         #elseif os(macOS)
         scrollView.contentInsets = padding
         #endif
+        
     }
     
     public func makeCoordinator() -> MPScrollViewCoordinator {
