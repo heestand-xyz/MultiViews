@@ -92,7 +92,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     }
     
     public func updateView(_ view: MPView, context: Context) {
-        let scrollView: MPScrollView = view as! MPScrollView
+//        let scrollView: MPScrollView = view as! MPScrollView
     }
     
     public func makeCoordinator() -> MPScrollViewCoordinator {
