@@ -18,16 +18,22 @@ typealias MPScrollView = UIScrollView
 typealias MPScrollView = MPNSScrollView
 #endif
 
+#if os(iOS)
+public typealias MPEdgeInsets = UIEdgeInsets
+#elseif os(macOS)
+public typealias MPEdgeInsets = NSEdgeInsets
+#endif
+
 public struct MVScrollView<Content: View>: ViewRepresentable {
     
-    let padding: CGFloat
+    let padding: MPEdgeInsets
     let pageWidth: CGFloat
     @Binding var scrollOffset: CGPoint
     
     let content: () -> (Content)
     let host: MPHostingView<Content>
 
-    public init(padding: CGFloat, pageWidth: CGFloat, scrollOffset: Binding<CGPoint>, content: @escaping () -> (Content)) {
+    public init(padding: MPEdgeInsets, pageWidth: CGFloat, scrollOffset: Binding<CGPoint>, content: @escaping () -> (Content)) {
         self.padding = padding
         self.pageWidth = pageWidth
         _scrollOffset = scrollOffset
@@ -52,10 +58,10 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         #endif
         
         #if os(iOS)
-        scrollView.contentInset = UIEdgeInsets(top: padding, left: padding, bottom: padding, right: padding)
+        scrollView.contentInset = padding
         #elseif os(macOS)
         scrollView.automaticallyAdjustsContentInsets = false
-        scrollView.contentInsets = NSEdgeInsets(top: padding, left: padding, bottom: padding, right: padding)
+        scrollView.contentInsets = padding
         #endif
         
         let view: MPView = host.view
@@ -93,6 +99,8 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     
     public func updateView(_ view: MPView, context: Context) {
 //        let scrollView: MPScrollView = view as! MPScrollView
+        print("MV Scroll View - Update - Padding:", padding)
+        context.coordinator.padding = padding
     }
     
     public func makeCoordinator() -> MPScrollViewCoordinator {
@@ -103,14 +111,14 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
 
 public class MPScrollViewCoordinator: NSObject {
     
-    let padding: CGFloat
+    var padding: MPEdgeInsets
     
     var scrollView: MPScrollView!
     
     let pageWidth: CGFloat
     @Binding var scrollOffset: CGPoint
 
-    init(padding: CGFloat, pageWidth: CGFloat, scrollOffset: Binding<CGPoint>) {
+    init(padding: MPEdgeInsets, pageWidth: CGFloat, scrollOffset: Binding<CGPoint>) {
         self.padding = padding
         self.pageWidth = pageWidth
         _scrollOffset = scrollOffset
@@ -131,15 +139,15 @@ extension MPScrollViewCoordinator: UIScrollViewDelegate {
     public func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
         var x: CGFloat = targetContentOffset.pointee.x
         var y: CGFloat = targetContentOffset.pointee.y
-        let isAtRight: Bool = 0.0 == scrollView.contentSize.width - scrollView.bounds.width - x + padding
+        let isAtRight: Bool = 0.0 == scrollView.contentSize.width - scrollView.bounds.width - x + padding.right
         if !isAtRight {
-            let relX: CGFloat = (x + padding) / pageWidth
-            x = round(relX) * pageWidth - padding
+            let relX: CGFloat = (x + padding.left) / pageWidth
+            x = round(relX) * pageWidth - padding.left
         }
-        let isAtBottom: Bool = 0.0 == scrollView.contentSize.height - scrollView.bounds.height - y + padding + scrollView.safeAreaInsets.bottom
+        let isAtBottom: Bool = 0.0 == scrollView.contentSize.height - scrollView.bounds.height - y + padding.bottom + scrollView.safeAreaInsets.bottom
         if !isAtBottom {
-            let relY: CGFloat = (y + padding) / pageWidth
-            y = round(relY) * pageWidth - padding
+            let relY: CGFloat = (y + padding.top) / pageWidth
+            y = round(relY) * pageWidth - padding.top
         }
         targetContentOffset.pointee = CGPoint(x: x, y: y)
     }
