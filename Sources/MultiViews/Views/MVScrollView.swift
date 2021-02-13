@@ -82,8 +82,8 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         scrollView.drawsBackground = false
         scrollView.documentView = view
         #endif
-        view.translatesAutoresizingMaskIntoConstraints = false
         #if os(iOS)
+        view.translatesAutoresizingMaskIntoConstraints = false
         view.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor).isActive = true
         view.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor).isActive = true
         view.topAnchor.constraint(equalTo: scrollView.topAnchor).isActive = true
@@ -107,20 +107,29 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     
     public func updateView(_ view: MPView, context: Context) {
         
+        print("<<< Scroll View Update >>>")
+        
         let scrollView: MPScrollView = view as! MPScrollView
         
         let couldNotScroll: Bool = scrollView.contentSize.width < scrollContainerSize.width && scrollView.contentSize.height < scrollContainerSize.height
         let canNotScroll: Bool = scrollContentSize.width < scrollContainerSize.width && scrollContentSize.height < scrollContainerSize.height
+        func roundSize(_ size: CGSize) -> CGSize {
+            CGSize(width: round(size.width), height: round(size.height))
+        }
+        let sizeIsNew: Bool = roundSize(scrollView.contentSize) != roundSize(scrollContentSize)
         #if os(iOS)
-        scrollView.contentSize = scrollContentSize
+        if sizeIsNew {
+            scrollView.contentSize = scrollContentSize
+        }
         if !couldNotScroll && canNotScroll {
             scrollView.setContentOffset(.zero, animated: true)
         }
         #elseif os(macOS)
-        scrollView.setBoundsSize(scrollContentSize)
+        if sizeIsNew {
+            scrollView.documentView?.setFrameSize(scrollContentSize)
+        }
         if !couldNotScroll && canNotScroll {
-        } else {
-            scrollView.setBoundsOrigin(.zero)
+            scrollView.documentView?.setFrameOrigin(.zero)
         }
         #endif
         
@@ -191,9 +200,11 @@ extension MPScrollViewCoordinator {
                                                name: NSView.boundsDidChangeNotification,
                                                object: scrollView.contentView)
     }
-    
+
     @objc func boundsChange() {
-        scrollOffset = scrollView.contentView.bounds.origin
+        DispatchQueue.main.async {
+            self.scrollOffset = self.scrollView.contentView.bounds.origin
+        }
     }
     
 }
