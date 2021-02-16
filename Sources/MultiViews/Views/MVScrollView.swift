@@ -118,6 +118,10 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         }
         let sizeIsNew: Bool = roundSize(scrollView.contentSize) != roundSize(scrollContentSize)
         #if os(iOS)
+        let offsetIsNew: Bool = scrollView.contentOffset != scrollOffset
+        if offsetIsNew {
+            scrollView.setContentOffset(scrollOffset, animated: false)
+        }
         if sizeIsNew {
             scrollView.contentSize = scrollContentSize
         }
@@ -125,11 +129,15 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
             scrollView.setContentOffset(.zero, animated: true)
         }
         #elseif os(macOS)
+        let offsetIsNew: Bool = scrollView.contentView.bounds.origin != scrollOffset
+        if offsetIsNew {
+            scrollView.contentView.setBoundsOrigin(scrollOffset)
+        }
         if sizeIsNew {
             scrollView.documentView?.setFrameSize(scrollContentSize)
         }
         if !couldNotScroll && canNotScroll {
-            scrollView.documentView?.setFrameOrigin(.zero)
+            scrollView.contentView.setBoundsOrigin(.zero)
         }
         #endif
         
