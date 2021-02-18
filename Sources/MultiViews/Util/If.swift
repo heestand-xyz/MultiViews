@@ -16,25 +16,13 @@ public extension View {
     }
 }
 
-//struct If<Content: View, SubContent: View>: View {
-//    let this: Bool
-//    let contentIf: (SubContent) -> (Content)
-//    let contentElse: (SubContent) -> (Content)
-//    let content: () -> (SubContent)
-//    init(_ this: Bool,
-//         _ contentIf: @escaping (SubContent) -> (Content),
-//         else contentElse: @escaping (SubContent) -> (Content),
-//         content: @escaping () -> (SubContent)) {
-//        self.this = this
-//        self.contentIf = contentIf
-//        self.contentElse = contentElse
-//        self.content = content
-//    }
-//    var body: some View {
-//        if this {
-//            contentIf(content())
-//        } else {
-//            contentElse(content())
-//        }
-//    }
-//}
+public extension View {
+    func unwrap<T, Content: View>(_ this: T?,
+                                _ contentIf: (Self, T) -> (Content)) -> AnyView {
+        if let unwrapped: T = this {
+            return AnyView(contentIf(self, unwrapped))
+        } else {
+            return AnyView(self)
+        }
+    }
+}
