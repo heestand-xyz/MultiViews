@@ -126,7 +126,9 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
             scrollView.contentSize = scrollContentSize
         }
         if !couldNotScroll && canNotScroll {
-            scrollView.setContentOffset(.zero, animated: true)
+            RunLoop.current.add(Timer(timeInterval: 0.1, repeats: false, block: { _ in
+                scrollView.setContentOffset(CGPoint(x: -padding.left, y: -padding.top), animated: true)
+            }), forMode: .common)
         }
         #elseif os(macOS)
         let offsetIsNew: Bool = scrollView.contentView.bounds.origin != scrollOffset
