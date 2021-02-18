@@ -45,6 +45,8 @@ class MainMultiInteractView: MPView {
    
     #if os(iOS)
     var touchIDs: [UUID: UITouch] = [:]
+    #elseif os(macOS)
+    var clickID: UUID?
     #endif
     
     init(interacted: @escaping ([MVMultiInteraction]) -> (),
@@ -106,21 +108,22 @@ class MainMultiInteractView: MPView {
     
     #if os(macOS)
     override func mouseDown(with event: NSEvent) {
-        interacted(.started)
+        clickID = UUID()
         guard let location: CGPoint = getMouseLocation(event: event) else { return }
-        interacting?(location)
+        interacted([MVMultiInteraction(id: clickID!, interaction: .started, location: location)])
+        interacting?([MVMultiInteracting(id: clickID!, location: location)])
     }
     override func mouseDragged(with event: NSEvent) {
+        guard let id: UUID = clickID else { return }
         guard let location: CGPoint = getMouseLocation(event: event) else { return }
-        interacting?(location)
+        interacting?([MVMultiInteracting(id: id, location: location)])
     }
     override func mouseUp(with event: NSEvent) {
+        defer { clickID = nil }
+        guard let id: UUID = clickID else { return }
         guard let location: CGPoint = getMouseLocation(event: event) else { return }
         let inside: Bool = bounds.contains(location)
-        interacted(inside ? .endedInside : .endedOutside)
-    }
-    override func scrollWheel(with event: NSEvent) {
-        scrolling?(CGPoint(x: event.scrollingDeltaX, y: event.scrollingDeltaY))
+        interacted([MVMultiInteraction(id: id, interaction: inside ? .endedInside : .endedOutside, location: location)])
     }
     func getMouseLocation(event: NSEvent) -> CGPoint? {
         let mouseLocation: CGPoint = event.locationInWindow
