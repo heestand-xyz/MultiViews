@@ -26,14 +26,6 @@ public typealias MPEdgeInsets = NSEdgeInsets
 
 public struct MVScrollView<Content: View>: ViewRepresentable {
     
-    let padding: MPEdgeInsets
-    let pageWidth: CGFloat
-    @Binding var scrollOffset: CGPoint
-    @Binding var scrollContainerSize: CGSize
-    @Binding var scrollContentSize: CGSize
-
-    let content: () -> (Content)
-    
     public enum Axis {
         case free
         case vertical
@@ -43,12 +35,23 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     }
     let axis: Axis
 
+    let padding: MPEdgeInsets
+    let pageWidth: CGFloat
+    
+    @Binding var scrollOffset: CGPoint
+    @Binding var scrollContainerSize: CGSize
+    @Binding var scrollContentSize: CGSize
+    @Binding var canScroll: Bool
+
+    let content: () -> (Content)
+    
     public init(axis: Axis = .free,
                 padding: MPEdgeInsets,
                 pageWidth: CGFloat,
                 scrollOffset: Binding<CGPoint>,
                 scrollContainerSize: Binding<CGSize>,
                 scrollContentSize: Binding<CGSize>,
+                canScroll: Binding<Bool> = .constant(true),
                 content: @escaping () -> (Content)) {
         self.axis = axis
         self.padding = padding
@@ -56,6 +59,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         _scrollOffset = scrollOffset
         _scrollContainerSize = scrollContainerSize
         _scrollContentSize = scrollContentSize
+        _canScroll = canScroll
         self.content = content
     }
     
@@ -165,6 +169,15 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         scrollView.contentInsets = padding
         #endif
         
+        if context.coordinator.willScroll != canScroll {
+            #if os(iOS)
+            scrollView.isScrollEnabled = canScroll
+            #elseif os(macOS)
+            // Not implemented
+            #endif
+            context.coordinator.willScroll = canScroll
+        }
+        
     }
     
     public func makeCoordinator() -> MPScrollViewCoordinator {
@@ -181,6 +194,8 @@ public class MPScrollViewCoordinator: NSObject {
     
     let pageWidth: CGFloat
     @Binding var scrollOffset: CGPoint
+    
+    var willScroll: Bool?
 
     init(padding: MPEdgeInsets, pageWidth: CGFloat, scrollOffset: Binding<CGPoint>) {
         self.padding = padding
