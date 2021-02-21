@@ -13,7 +13,7 @@ import AppKit
 import SwiftUI
 
 #if os(iOS)
-typealias MPScrollView = UIScrollView
+typealias MPScrollView = MPUIScrollView
 #elseif os(macOS)
 typealias MPScrollView = MPNSScrollView
 #endif
@@ -33,13 +33,24 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     @Binding var scrollContentSize: CGSize
 
     let content: () -> (Content)
+    
+    public enum Axis {
+        case free
+        case vertical
+        case horizontal
+        var isVertical: Bool { self != .horizontal }
+        var isHorizontal: Bool { self != .vertical }
+    }
+    let axis: Axis
 
-    public init(padding: MPEdgeInsets,
+    public init(axis: Axis = .free,
+                padding: MPEdgeInsets,
                 pageWidth: CGFloat,
                 scrollOffset: Binding<CGPoint>,
                 scrollContainerSize: Binding<CGSize>,
                 scrollContentSize: Binding<CGSize>,
                 content: @escaping () -> (Content)) {
+        self.axis = axis
         self.padding = padding
         self.pageWidth = pageWidth
         _scrollOffset = scrollOffset
@@ -50,18 +61,22 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     
     public func makeView(context: Context) -> MPView {
         
+        print("<<< Scroll View Make >>>")
+        
         let host = MPHostingView(rootView: content())
         
         let scrollView: MPScrollView
         #if os(iOS)
-        scrollView = UIScrollView()
+        scrollView = MPUIScrollView()
         #elseif os(macOS)
         scrollView = MPNSScrollView()
         #endif
         
         #if os(macOS)
-        scrollView.hasVerticalScroller = true
-        scrollView.hasHorizontalScroller = true
+        scrollView.hasVerticalScroller = axis.isVertical
+        scrollView.hasHorizontalScroller = axis.isHorizontal
+        scrollView.verticalScrollElasticity = axis.isVertical ? .automatic : .none
+        scrollView.horizontalScrollElasticity = axis.isHorizontal ? .automatic : .none
         scrollView.usesPredominantAxisScrolling = false
         #endif
         
@@ -107,7 +122,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     
     public func updateView(_ view: MPView, context: Context) {
         
-        print("<<< Scroll View Update >>>")
+//        print("<<< Scroll View Update >>>")
         
         let scrollView: MPScrollView = view as! MPScrollView
         
@@ -182,7 +197,9 @@ extension MPScrollViewCoordinator: UIScrollViewDelegate {
     func setup() {}
     
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        scrollOffset = scrollView.contentOffset
+        DispatchQueue.main.async {
+            self.scrollOffset = scrollView.contentOffset
+        }
     }
     
     public func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
@@ -220,21 +237,8 @@ extension MPScrollViewCoordinator {
 }
 #endif
 
-#if os(macOS)
-class MPNSScrollView: NSScrollView {
-    
-//    override func scrollWheel(with event: NSEvent) {
-//        dump(event)
-//    }
-    
-//    override func hitTest(_ point: NSPoint) -> NSView? {
-//        for subView in subviews {
-//            if let view: NSView = subView.hitTest(point) {
-//                return view
-//            }
-//        }
-//        return nil
-//    }
-    
-}
+#if os(iOS)
+class MPUIScrollView: UIScrollView {}
+#elseif os(macOS)
+class MPNSScrollView: NSScrollView {}
 #endif
