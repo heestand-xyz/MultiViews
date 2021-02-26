@@ -21,7 +21,7 @@ public struct MVBlurView: ViewRepresentable {
     
     public init() {}
     
-    #if os(iOS)
+    #if !os(macOS)
     public var style: UIBlurEffect.Style { colorScheme == .light ? .light : .dark }
     public var effect: UIVisualEffect { UIBlurEffect(style: style) }
     #endif

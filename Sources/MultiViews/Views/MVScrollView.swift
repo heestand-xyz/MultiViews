@@ -12,16 +12,16 @@ import AppKit
 #endif
 import SwiftUI
 
-#if os(iOS)
-typealias MPScrollView = MPUIScrollView
-#elseif os(macOS)
-typealias MPScrollView = MPNSScrollView
+#if os(macOS)
+typealias MPScrollView = NSScrollView
+#else
+typealias MPScrollView = UIScrollView
 #endif
 
-#if os(iOS)
-public typealias MPEdgeInsets = UIEdgeInsets
-#elseif os(macOS)
+#if os(macOS)
 public typealias MPEdgeInsets = NSEdgeInsets
+#else
+public typealias MPEdgeInsets = UIEdgeInsets
 #endif
 
 public struct MVScrollView<Content: View>: ViewRepresentable {
@@ -70,10 +70,10 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         let host = MPHostingView(rootView: content())
         
         let scrollView: MPScrollView
-        #if os(iOS)
-        scrollView = MPUIScrollView()
-        #elseif os(macOS)
-        scrollView = MPNSScrollView()
+        #if os(macOS)
+        scrollView = NSScrollView()
+        #else
+        scrollView = UIScrollView()
         #endif
         
         #if os(macOS)
@@ -84,22 +84,22 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         scrollView.usesPredominantAxisScrolling = false
         #endif
         
-        #if os(iOS)
-        scrollView.contentInset = padding
-        #elseif os(macOS)
+        #if os(macOS)
         scrollView.automaticallyAdjustsContentInsets = false
         scrollView.contentInsets = padding
+        #else
+        scrollView.contentInset = padding
         #endif
         
         let view: MPView = host.view
-        #if os(iOS)
-        view.backgroundColor = .clear
-        scrollView.addSubview(view)
-        #elseif os(macOS)
+        #if os(macOS)
         view.wantsLayer = true
         view.layer!.backgroundColor = .clear
         scrollView.drawsBackground = false
         scrollView.documentView = view
+        #else
+        view.backgroundColor = .clear
+        scrollView.addSubview(view)
         #endif
         #if os(iOS)
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -208,6 +208,22 @@ public class MPScrollViewCoordinator: NSObject {
 }
 
 #if os(iOS)
+extension MPScrollViewCoordinator {
+    
+    func setup() {
+        NotificationCenter.default.addObserver(self, selector: #selector(boundsChange),
+                                               name: NSView.boundsDidChangeNotification,
+                                               object: scrollView.contentView)
+    }
+
+    @objc func boundsChange() {
+        DispatchQueue.main.async {
+            self.scrollOffset = self.scrollView.contentView.bounds.origin
+        }
+    }
+    
+}
+#else
 extension MPScrollViewCoordinator: UIScrollViewDelegate {
     
     func setup() {}
@@ -235,26 +251,4 @@ extension MPScrollViewCoordinator: UIScrollViewDelegate {
     }
     
 }
-#elseif os(macOS)
-extension MPScrollViewCoordinator {
-    
-    func setup() {
-        NotificationCenter.default.addObserver(self, selector: #selector(boundsChange),
-                                               name: NSView.boundsDidChangeNotification,
-                                               object: scrollView.contentView)
-    }
-
-    @objc func boundsChange() {
-        DispatchQueue.main.async {
-            self.scrollOffset = self.scrollView.contentView.bounds.origin
-        }
-    }
-    
-}
-#endif
-
-#if os(iOS)
-class MPUIScrollView: UIScrollView {}
-#elseif os(macOS)
-class MPNSScrollView: NSScrollView {}
 #endif

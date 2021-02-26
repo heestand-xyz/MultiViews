@@ -10,7 +10,7 @@ import UIKit
 #endif
 
 public let iPhone: Bool = {
-    #if !os(macOS)
+    #if os(iOS)
     return UIDevice.current.userInterfaceIdiom == .phone
     #else
     return false
@@ -18,7 +18,7 @@ public let iPhone: Bool = {
 }()
 
 public let iPad: Bool = {
-    #if !os(macOS)
+    #if os(iOS)
     return UIDevice.current.userInterfaceIdiom == .pad
     #else
     return false
