@@ -207,7 +207,7 @@ public class MPScrollViewCoordinator: NSObject {
     
 }
 
-#if os(iOS)
+#if os(macOS)
 extension MPScrollViewCoordinator {
     
     func setup() {
