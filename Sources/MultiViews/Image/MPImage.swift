@@ -40,3 +40,18 @@ public extension MPImage {
     }
 }
 #endif
+
+#if os(macOS)
+public extension NSImage {
+    var scale: CGFloat { 1.0 }
+}
+#endif
+
+#if os(macOS)
+public extension NSImage {
+    var cgImage: CGImage? {
+        var frame = CGRect(x: 0, y: 0, width: size.width, height: size.height)
+        return cgImage(forProposedRect: &frame, context: nil, hints: nil)
+    }
+}
+#endif
