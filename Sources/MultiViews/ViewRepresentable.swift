@@ -1,7 +1,3 @@
-//
-//  Created by Anton Heestand on 2021-01-25.
-//
-
 #if os(macOS)
 import AppKit
 #else

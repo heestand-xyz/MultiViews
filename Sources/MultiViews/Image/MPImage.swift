@@ -43,7 +43,11 @@ public extension MPImage {
 
 #if os(macOS)
 public extension NSImage {
-    var scale: CGFloat { 1.0 }
+    var scale: CGFloat {
+        guard let pixelsWide: Int = representations.first?.pixelsWide else { return 1.0 }
+        let scale: CGFloat = CGFloat(pixelsWide) / size.width
+        return scale
+    }
 }
 #endif
 
@@ -52,6 +56,14 @@ public extension NSImage {
     var cgImage: CGImage? {
         var frame = CGRect(x: 0, y: 0, width: size.width, height: size.height)
         return cgImage(forProposedRect: &frame, context: nil, hints: nil)
+    }
+}
+#endif
+
+#if os(iOS)
+public extension UIImage {
+    convenience init(cgImage: CGImage, size: CGSize) {
+        self.init(cgImage: cgImage)
     }
 }
 #endif

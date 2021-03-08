@@ -1,22 +1,9 @@
-//
-//  MultiPlatform.swift
-//  Jockey
-//
-//  Created by Anton Heestand on 2020-12-06.
-//
-
 #if os(macOS)
 import AppKit
 #else
 import UIKit
 #endif
 import SwiftUI
-
-#if os(macOS)
-public typealias MPView = NSView
-#else
-public typealias MPView = UIView
-#endif
 
 #if os(macOS)
 public typealias MPViewController = NSViewController
