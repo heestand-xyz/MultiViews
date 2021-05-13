@@ -95,15 +95,23 @@ class MainInteractView: MPView {
         scrolling?(CGPoint(x: event.scrollingDeltaX, y: event.scrollingDeltaY))
     }
     func getMouseLocation(event: NSEvent) -> CGPoint? {
-        guard let window: NSWindow = window else { return nil }
-        let mouseLocation: CGPoint = window.mouseLocationOutsideOfEventStream
-        guard let firstWindowView: NSView = window.contentView else { return nil }
-        guard let secondWindowView: NSView = window.contentView?.subviews.first else { return nil }
-        let windowView: NSView = firstWindowView.frame == secondWindowView.frame ? firstWindowView : secondWindowView
-        let location: CGPoint = windowView.convert(mouseLocation, to: self)
-        let finalLocation: CGPoint = CGPoint(x: location.x, y: bounds.size.height - location.y)
-        return finalLocation
+        let mouseLocation: CGPoint = event.locationInWindow
+        guard let vcView: NSView = window?.contentViewController?.view else { return nil }
+        let point: CGPoint = convert(.zero, to: vcView)
+        let origin: CGPoint = CGPoint(x: point.x, y: vcView.bounds.size.height - point.y)
+        let location: CGPoint = CGPoint(x: mouseLocation.x - origin.x, y: mouseLocation.y - origin.y)
+        return location
     }
+//    func getMouseLocation(event: NSEvent) -> CGPoint? {
+//        guard let window: NSWindow = window else { return nil }
+//        let mouseLocation: CGPoint = window.mouseLocationOutsideOfEventStream
+//        guard let firstWindowView: NSView = window.contentView else { return nil }
+//        guard let secondWindowView: NSView = window.contentView?.subviews.first else { return nil }
+//        let windowView: NSView = firstWindowView.frame == secondWindowView.frame ? firstWindowView : secondWindowView
+//        let location: CGPoint = windowView.convert(mouseLocation, to: self)
+//        let finalLocation: CGPoint = CGPoint(x: location.x, y: bounds.size.height - location.y)
+//        return finalLocation
+//    }
     #endif
     
     

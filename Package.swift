@@ -12,7 +12,10 @@ let package = Package(
     products: [
         .library(name: "MultiViews", targets: ["MultiViews"]),
     ],
+    dependencies: [
+        .package(url: "https://github.com/heestand-xyz/CoreGraphicsExtensions", from: "1.1.0")
+    ],
     targets: [
-        .target(name: "MultiViews", dependencies: []),
+        .target(name: "MultiViews", dependencies: ["CoreGraphicsExtensions"]),
     ]
 )
