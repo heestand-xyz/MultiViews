@@ -13,9 +13,9 @@ import AppKit
 import SwiftUI
 
 #if os(macOS)
-typealias MPScrollView = NSScrollView
+public typealias MPScrollView = NSScrollView
 #else
-typealias MPScrollView = UIScrollView
+public typealias MPScrollView = UIScrollView
 #endif
 
 #if os(macOS)
