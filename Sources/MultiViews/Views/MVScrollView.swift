@@ -217,7 +217,8 @@ extension MPScrollViewCoordinator {
     }
 
     @objc func boundsChange() {
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
             self.scrollOffset = self.scrollView.contentView.bounds.origin
         }
     }
@@ -229,8 +230,8 @@ extension MPScrollViewCoordinator: UIScrollViewDelegate {
     func setup() {}
     
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        DispatchQueue.main.async {
-            self.scrollOffset = scrollView.contentOffset
+        DispatchQueue.main.async { [weak self] in
+            self?.scrollOffset = scrollView.contentOffset
         }
     }
     
