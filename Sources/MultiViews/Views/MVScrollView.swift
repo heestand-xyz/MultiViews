@@ -65,7 +65,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     
     public func makeView(context: Context) -> MPView {
         
-        print("<<< Scroll View Make >>>")
+        print("<<< <<< Scroll View Make >>> >>>")
         
         let host = MPHostingView(rootView: content())
         
@@ -127,7 +127,6 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     public func updateView(_ view: MPView, context: Context) {
         
 //        print("<<< Scroll View Update >>>")
-//        print("FRAME ))))", view.frame)
         
         let scrollView: MPScrollView = view as! MPScrollView
         
