@@ -37,3 +37,16 @@ public var macOS: Bool {
     return false
     #endif
 }
+
+public var iOS15: Bool {
+    if #available(iOS 15.0, *) {
+        return true
+    }
+    return false
+}
+public var macOS12: Bool {
+    if #available(macOS 12.0, *) {
+        return true
+    }
+    return false
+}
