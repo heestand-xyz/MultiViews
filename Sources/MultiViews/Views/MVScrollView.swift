@@ -67,7 +67,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         
         print("<<< <<< Scroll View Make >>> >>>")
         
-        let host = MPHostingView(rootView: content())
+        let host = MPHostingController(rootView: content())
         
         let scrollView: MPScrollView
         #if os(macOS)
