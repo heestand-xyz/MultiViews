@@ -76,7 +76,12 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         scrollView = UIScrollView()
         #endif
         
-        #if os(macOS)
+        #if os(iOS)
+        scrollView.showsHorizontalScrollIndicator = axis.isHorizontal
+        scrollView.showsVerticalScrollIndicator = axis.isVertical
+        scrollView.alwaysBounceHorizontal = axis.isHorizontal
+        scrollView.alwaysBounceVertical = axis.isVertical
+        #elseif os(macOS)
         scrollView.hasVerticalScroller = axis.isVertical
         scrollView.hasHorizontalScroller = axis.isHorizontal
         scrollView.verticalScrollElasticity = axis.isVertical ? .automatic : .none
