@@ -65,7 +65,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     
     public func makeView(context: Context) -> MPView {
         
-        print("<<< <<< Scroll View Make >>> >>>")
+//        print("<<< <<< Scroll View Make >>> >>>")
         
         let host = MPHostingController(rootView: content())
         
