@@ -24,3 +24,11 @@ public let iPad: Bool = {
     return false
     #endif
 }()
+
+public let mac: Bool = {
+    #if os(macOS)
+    return true
+    #else
+    return false
+    #endif
+}()
