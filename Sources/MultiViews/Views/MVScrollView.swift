@@ -188,7 +188,6 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     public func makeCoordinator() -> MPScrollViewCoordinator {
         MPScrollViewCoordinator(padding: padding, pageWidth: pageWidth, scrollOffset: $scrollOffset)
     }
-    
 }
 
 public class MPScrollViewCoordinator: NSObject {
@@ -208,7 +207,6 @@ public class MPScrollViewCoordinator: NSObject {
         _scrollOffset = scrollOffset
         super.init()
     }
-    
 }
 
 #if os(macOS)
@@ -226,7 +224,6 @@ extension MPScrollViewCoordinator {
             self.scrollOffset = self.scrollView.contentView.bounds.origin
         }
     }
-    
 }
 #else
 extension MPScrollViewCoordinator: UIScrollViewDelegate {
@@ -254,6 +251,5 @@ extension MPScrollViewCoordinator: UIScrollViewDelegate {
         }
         targetContentOffset.pointee = CGPoint(x: x, y: y)
     }
-    
 }
 #endif

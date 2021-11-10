@@ -35,7 +35,6 @@ public struct MVInteractView: ViewRepresentable {
         MainInteractView(interacted: interacted, interacting: interacting, scrolling: scrolling)
     }
     public func updateView(_ view: MPView, context: Context) {}
-    
 }
 
 class MainInteractView: MPView {

@@ -39,5 +39,4 @@ public struct MVBlurView: ViewRepresentable {
         (view as! MPVisualEffectView).effect = effect
         #endif
     }
-    
 }

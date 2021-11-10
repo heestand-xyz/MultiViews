@@ -35,7 +35,6 @@ public struct MVMultiInteractView: ViewRepresentable {
         MainMultiInteractView(interacted: interacted, interacting: interacting)
     }
     public func updateView(_ view: MPView, context: Context) {}
-    
 }
 
 class MainMultiInteractView: MPView {
@@ -134,6 +133,4 @@ class MainMultiInteractView: MPView {
         return location
     }
     #endif
-    
-    
 }
