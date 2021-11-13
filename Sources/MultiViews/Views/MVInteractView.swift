@@ -78,33 +78,31 @@ class MainInteractView: MPView {
     #if os(macOS)
     override func mouseDown(with event: NSEvent) {
         interacted(.started)
-        guard let location: CGPoint = getMouseLocation(event: event) else { return }
+        guard let location: CGPoint = getMouseLocation() else { return }
         interacting?(location)
     }
     override func mouseDragged(with event: NSEvent) {
-        guard let location: CGPoint = getMouseLocation(event: event) else { return }
+        guard let location: CGPoint = getMouseLocation() else { return }
         interacting?(location)
     }
     override func mouseUp(with event: NSEvent) {
-        guard let location: CGPoint = getMouseLocation(event: event) else { return }
+        guard let location: CGPoint = getMouseLocation() else { return }
         let inside: Bool = bounds.contains(location)
         interacted(inside ? .endedInside : .endedOutside)
     }
     override func scrollWheel(with event: NSEvent) {
         scrolling?(CGPoint(x: event.scrollingDeltaX, y: event.scrollingDeltaY))
     }
-    func getMouseLocation(event: NSEvent) -> CGPoint? {
-        let mouseLocation: CGPoint = event.locationInWindow
+    func getMouseLocation() -> CGPoint? {
         guard let window: NSWindow = window else { return nil }
-        guard let contentView: NSView = window.contentView else { return nil }
-        let isMainWindow: Bool = NSApplication.shared.windows.firstIndex(of: window) == 0
-        if !isMainWindow {
-            return convert(mouseLocation, from: contentView)
-        }
-        let point: CGPoint = convert(.zero, to: contentView)
-        let origin: CGPoint = CGPoint(x: point.x, y: contentView.bounds.size.height - point.y)
-        let location: CGPoint = CGPoint(x: mouseLocation.x - origin.x, y: mouseLocation.y - origin.y)
-        return location
+        let mouseLocation: CGPoint = window.mouseLocationOutsideOfEventStream
+        guard let windowView: NSView = window.contentView else { return nil }
+        var point: CGPoint = convert(.zero, to: windowView)
+        if point.y == 0.0 { point = convert(CGPoint(x: 0.0, y: windowView.bounds.height), to: windowView) }
+        let origin: CGPoint = CGPoint(x: point.x, y: windowView.bounds.size.height - point.y)
+        let location: CGPoint = mouseLocation - origin
+        let finalLocation: CGPoint = CGPoint(x: location.x, y: bounds.size.height - location.y)
+        return finalLocation
     }
     #endif
     
