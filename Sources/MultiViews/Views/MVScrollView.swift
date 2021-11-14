@@ -76,19 +76,6 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         scrollView = UIScrollView()
         #endif
         
-        #if os(iOS)
-        scrollView.showsHorizontalScrollIndicator = axis.isHorizontal
-        scrollView.showsVerticalScrollIndicator = axis.isVertical
-        scrollView.alwaysBounceHorizontal = axis.isHorizontal
-        scrollView.alwaysBounceVertical = axis.isVertical
-        #elseif os(macOS)
-        scrollView.hasVerticalScroller = axis.isVertical
-        scrollView.hasHorizontalScroller = axis.isHorizontal
-        scrollView.verticalScrollElasticity = axis.isVertical ? .automatic : .none
-        scrollView.horizontalScrollElasticity = axis.isHorizontal ? .automatic : .none
-        scrollView.usesPredominantAxisScrolling = false
-        #endif
-        
         #if os(macOS)
         scrollView.automaticallyAdjustsContentInsets = false
         scrollView.contentInsets = padding
@@ -134,6 +121,19 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
 //        print("<<< Scroll View Update >>>")
         
         let scrollView: MPScrollView = view as! MPScrollView
+        
+        #if os(iOS)
+        scrollView.showsHorizontalScrollIndicator = axis.isHorizontal
+        scrollView.showsVerticalScrollIndicator = axis.isVertical
+        scrollView.alwaysBounceHorizontal = axis.isHorizontal
+        scrollView.alwaysBounceVertical = axis.isVertical
+        #elseif os(macOS)
+        scrollView.hasVerticalScroller = axis.isVertical
+        scrollView.hasHorizontalScroller = axis.isHorizontal
+        scrollView.verticalScrollElasticity = axis.isVertical ? .automatic : .none
+        scrollView.horizontalScrollElasticity = axis.isHorizontal ? .automatic : .none
+        scrollView.usesPredominantAxisScrolling = false
+        #endif
         
         let couldNotScroll: Bool = scrollView.contentSize.width < scrollContainerSize.width && scrollView.contentSize.height < scrollContainerSize.height
         let canNotScroll: Bool = scrollContentSize.width < scrollContainerSize.width && scrollContentSize.height < scrollContainerSize.height
