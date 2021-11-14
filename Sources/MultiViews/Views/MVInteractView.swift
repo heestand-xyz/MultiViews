@@ -83,8 +83,7 @@ class MainInteractView: MPView {
     }
     override func mouseDragged(with event: NSEvent) {
         guard let location: CGPoint = getMouseLocation() else { return }
-        let inverseLocation = CGPoint(x: location.x, y: bounds.height - location.y)
-        interacting?(inverseLocation)
+        interacting?(location)
     }
     override func mouseUp(with event: NSEvent) {
         guard let location: CGPoint = getMouseLocation() else { return }
