@@ -95,9 +95,9 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         #endif
         #if os(iOS)
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.topAnchor.constraint(equalTo: scrollView.topAnchor).isActive = true
         view.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor).isActive = true
         view.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor).isActive = true
-        view.topAnchor.constraint(equalTo: scrollView.topAnchor).isActive = true
         view.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor).isActive = true
         #endif
         
@@ -111,6 +111,13 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         
         context.coordinator.scrollView = scrollView
         context.coordinator.setup()
+        
+        context.coordinator.padding = padding
+        #if os(iOS)
+        scrollView.contentInset = padding
+        #elseif os(macOS)
+        scrollView.contentInsets = padding
+        #endif
         
         return scrollView
         
@@ -167,16 +174,9 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         }
         #endif
         
-        context.coordinator.padding = padding
-        #if os(iOS)
-        scrollView.contentInset = padding
-        #elseif os(macOS)
-        scrollView.contentInsets = padding
-        #endif
-        
         if context.coordinator.willScroll != canScroll {
             #if os(iOS)
-            scrollView.isScrollEnabled = canScroll
+//            scrollView.isScrollEnabled = canScroll
             #elseif os(macOS)
             // Not implemented
             #endif
