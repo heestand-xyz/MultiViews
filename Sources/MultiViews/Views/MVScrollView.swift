@@ -46,7 +46,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     let content: () -> (Content)
     
     public init(axis: Axis = .free,
-                padding: MPEdgeInsets,
+                padding: MPEdgeInsets = MPEdgeInsets(top: 0, left: 0, bottom: 0, right: 0),
                 pageWidth: CGFloat,
                 scrollOffset: Binding<CGPoint>,
                 scrollContainerSize: Binding<CGSize>,
