@@ -11,6 +11,7 @@ import UIKit
 import AppKit
 #endif
 import SwiftUI
+import CoreGraphicsExtensions
 
 #if os(macOS)
 public typealias MPScrollView = NSScrollView
@@ -24,20 +25,27 @@ public typealias MPEdgeInsets = NSEdgeInsets
 public typealias MPEdgeInsets = UIEdgeInsets
 #endif
 
+enum MVScrollDirection {
+    case horizontal
+    case vertical
+}
+
 public struct MVScrollView<Content: View>: ViewRepresentable {
     
     public enum Axis {
         case free
-        case vertical
+        case first
         case horizontal
-        var isVertical: Bool { self != .horizontal }
+        case vertical
         var isHorizontal: Bool { self != .vertical }
+        var isVertical: Bool { self != .horizontal }
     }
     let axis: Axis
 
     let padding: MPEdgeInsets
-    let pageWidth: CGFloat
-    
+    let pageWidth: CGFloat?
+    let pageHeight: CGFloat?
+
     @Binding var scrollOffset: CGPoint
     @Binding var scrollContainerSize: CGSize
     @Binding var scrollContentSize: CGSize
@@ -46,8 +54,9 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     let content: () -> (Content)
     
     public init(axis: Axis = .free,
-                padding: MPEdgeInsets = MPEdgeInsets(top: 0, left: 0, bottom: 0, right: 0),
-                pageWidth: CGFloat,
+                padding: MPEdgeInsets = .zero,
+                pageWidth: CGFloat? = nil,
+                pageHeight: CGFloat? = nil,
                 scrollOffset: Binding<CGPoint>,
                 scrollContainerSize: Binding<CGSize>,
                 scrollContentSize: Binding<CGSize>,
@@ -56,6 +65,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         self.axis = axis
         self.padding = padding
         self.pageWidth = pageWidth
+        self.pageHeight = pageHeight
         _scrollOffset = scrollOffset
         _scrollContainerSize = scrollContainerSize
         _scrollContentSize = scrollContentSize
@@ -111,6 +121,34 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         
         context.coordinator.scrollView = scrollView
         context.coordinator.setup()
+        
+        #if os(iOS)
+        context.coordinator.didStartScroll = {}
+        context.coordinator.didScroll = { scrollOffset in
+            if axis == .first {
+                if context.coordinator.scrollStartOffset == nil {
+                    context.coordinator.scrollStartOffset = scrollOffset
+                }
+                let scrollStartOffset = context.coordinator.scrollStartOffset!
+                let offset: CGPoint = scrollOffset - scrollStartOffset
+                guard hypot(offset.x, offset.y) > 0.0 else { return scrollStartOffset }
+                if context.coordinator.firstDirection == nil {
+                    context.coordinator.firstDirection = abs(offset.x) > abs(offset.y) ? .horizontal : .vertical
+                }
+                switch context.coordinator.firstDirection! {
+                case .horizontal:
+                    return scrollStartOffset + CGPoint(x: offset.x, y: 0.0)
+                case .vertical:
+                    return scrollStartOffset + CGPoint(x: 0.0, y: offset.y)
+                }
+            }
+            return nil
+        }
+        context.coordinator.didEndScroll = {
+            context.coordinator.firstDirection = nil
+            context.coordinator.scrollStartOffset = nil
+        }
+        #endif
         
         context.coordinator.padding = padding
         #if os(iOS)
@@ -186,7 +224,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     }
     
     public func makeCoordinator() -> MPScrollViewCoordinator {
-        MPScrollViewCoordinator(padding: padding, pageWidth: pageWidth, scrollOffset: $scrollOffset)
+        MPScrollViewCoordinator(padding: padding, pageWidth: pageWidth, pageHeight: pageHeight, scrollOffset: $scrollOffset)
     }
 }
 
@@ -196,14 +234,26 @@ public class MPScrollViewCoordinator: NSObject {
     
     var scrollView: MPScrollView!
     
-    let pageWidth: CGFloat
+    let pageWidth: CGFloat?
+    let pageHeight: CGFloat?
     @Binding var scrollOffset: CGPoint
     
     var willScroll: Bool?
+    var firstDirection: MVScrollDirection?
+    
+    var isScrolling: Bool = false
+    var scrollStartOffset: CGPoint?
+    var didStartScroll: (() -> ())?
+    var didScroll: ((CGPoint) -> CGPoint?)?
+    var didEndScroll: (() -> ())?
 
-    init(padding: MPEdgeInsets, pageWidth: CGFloat, scrollOffset: Binding<CGPoint>) {
+    init(padding: MPEdgeInsets,
+         pageWidth: CGFloat?,
+         pageHeight: CGFloat?,
+         scrollOffset: Binding<CGPoint>) {
         self.padding = padding
         self.pageWidth = pageWidth
+        self.pageHeight = pageHeight
         _scrollOffset = scrollOffset
         super.init()
     }
@@ -230,26 +280,56 @@ extension MPScrollViewCoordinator: UIScrollViewDelegate {
     
     func setup() {}
     
+    public func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        didStartScroll?()
+        isScrolling = true
+    }
+    
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard isScrolling else { return }
+        let contentOffset: CGPoint? = didScroll?(scrollView.contentOffset)
+        if let contentOffset = contentOffset {
+            scrollView.setContentOffset(contentOffset, animated: false)
+        }
         DispatchQueue.main.async { [weak self] in
-            self?.scrollOffset = scrollView.contentOffset
+            self?.scrollOffset = contentOffset ?? scrollView.contentOffset
         }
     }
     
     public func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
         var x: CGFloat = targetContentOffset.pointee.x
         var y: CGFloat = targetContentOffset.pointee.y
-        let isAtRight: Bool = 0.0 == scrollView.contentSize.width - scrollView.bounds.width - x + padding.right
-        if !isAtRight {
-            let relX: CGFloat = (x + padding.left) / pageWidth
-            x = round(relX) * pageWidth - padding.left
+        if let pageWidth: CGFloat = pageWidth {
+            let isAtRight: Bool = 0.0 == scrollView.contentSize.width - scrollView.bounds.width - x + padding.right
+            if !isAtRight {
+                let relX: CGFloat = (x + padding.left) / pageWidth
+                x = round(relX) * pageWidth - padding.left
+            }
         }
-        let isAtBottom: Bool = 0.0 == scrollView.contentSize.height - scrollView.bounds.height - y + padding.bottom + scrollView.safeAreaInsets.bottom
-        if !isAtBottom {
-            let relY: CGFloat = (y + padding.top) / pageWidth
-            y = round(relY) * pageWidth - padding.top
+        if let pageHeight: CGFloat = pageHeight {
+            let isAtBottom: Bool = 0.0 == scrollView.contentSize.height - scrollView.bounds.height - y + padding.bottom + scrollView.safeAreaInsets.bottom
+            if !isAtBottom {
+                let relY: CGFloat = (y + padding.top) / pageHeight
+                y = round(relY) * pageHeight - padding.top
+            }
         }
         targetContentOffset.pointee = CGPoint(x: x, y: y)
     }
+    
+    public func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        if decelerate { return }
+        scrollViewDidEndScrolling()
+    }
+    
+    public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        scrollViewDidEndScrolling()
+    }
+    
+    private func scrollViewDidEndScrolling() {
+        isScrolling = false
+        didEndScroll?()
+    }
+    
+    
 }
 #endif
