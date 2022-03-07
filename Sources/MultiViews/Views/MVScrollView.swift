@@ -187,7 +187,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         }
         let sizeIsNew: Bool = roundSize(scrollView.contentSize) != roundSize(scrollContentSize)
         #if os(iOS)
-        let offsetIsNew: Bool = scrollView.contentOffset != scrollOffset
+        let offsetIsNew: Bool = !compare(scrollView.contentOffset, rhs: scrollOffset)
         if offsetIsNew {
             scrollView.setContentOffset(scrollOffset, animated: false)
         }
@@ -225,6 +225,14 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     
     public func makeCoordinator() -> MPScrollViewCoordinator {
         MPScrollViewCoordinator(padding: padding, pageWidth: pageWidth, pageHeight: pageHeight, scrollOffset: $scrollOffset)
+    }
+    
+    func compare(_ lhs: CGPoint, rhs: CGPoint) -> Bool {
+        let lhs = CGPoint(x: round(lhs.x * 1_000_000_000) / 1_000_000_000,
+                          y: round(lhs.y * 1_000_000_000) / 1_000_000_000)
+        let rhs = CGPoint(x: round(rhs.x * 1_000_000_000) / 1_000_000_000,
+                          y: round(rhs.y * 1_000_000_000) / 1_000_000_000)
+        return lhs == rhs
     }
 }
 
@@ -289,7 +297,7 @@ extension MPScrollViewCoordinator: UIScrollViewDelegate {
         guard isScrolling else { return }
         let contentOffset: CGPoint? = didScroll?(scrollView.contentOffset)
         if let contentOffset = contentOffset {
-            scrollView.setContentOffset(contentOffset, animated: false)
+            scrollView.contentOffset = contentOffset
         }
         DispatchQueue.main.async { [weak self] in
             self?.scrollOffset = contentOffset ?? scrollView.contentOffset
@@ -317,19 +325,19 @@ extension MPScrollViewCoordinator: UIScrollViewDelegate {
     }
     
     public func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        if decelerate { return }
-        scrollViewDidEndScrolling()
+        if !decelerate {
+            scrollViewDidEndScrolling()
+        }
     }
     
     public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         scrollViewDidEndScrolling()
     }
-    
+        
     private func scrollViewDidEndScrolling() {
         isScrolling = false
         didEndScroll?()
     }
-    
     
 }
 #endif
