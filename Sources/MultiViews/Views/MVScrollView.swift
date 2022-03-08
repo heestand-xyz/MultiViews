@@ -49,6 +49,9 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     @Binding var scrollOffset: CGPoint
     @Binding var scrollContainerSize: CGSize
     @Binding var scrollContentSize: CGSize
+    
+    let hasIndicators: Bool
+
     @Binding var canScroll: Bool
 
     let content: () -> (Content)
@@ -60,6 +63,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
                 scrollOffset: Binding<CGPoint>,
                 scrollContainerSize: Binding<CGSize>,
                 scrollContentSize: Binding<CGSize>,
+                hasIndicators: Bool = true,
                 canScroll: Binding<Bool> = .constant(true),
                 content: @escaping () -> (Content)) {
         self.axis = axis
@@ -69,6 +73,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         _scrollOffset = scrollOffset
         _scrollContainerSize = scrollContainerSize
         _scrollContentSize = scrollContentSize
+        self.hasIndicators = hasIndicators
         _canScroll = canScroll
         self.content = content
     }
@@ -168,8 +173,8 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         let scrollView: MPScrollView = view as! MPScrollView
         
         #if os(iOS)
-        scrollView.showsHorizontalScrollIndicator = axis.isHorizontal
-        scrollView.showsVerticalScrollIndicator = axis.isVertical
+        scrollView.showsHorizontalScrollIndicator = hasIndicators ? axis.isHorizontal : false
+        scrollView.showsVerticalScrollIndicator = hasIndicators ? axis.isVertical : false
         scrollView.alwaysBounceHorizontal = axis.isHorizontal
         scrollView.alwaysBounceVertical = axis.isVertical
         #elseif os(macOS)
@@ -228,10 +233,10 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     }
     
     func compare(_ lhs: CGPoint, rhs: CGPoint) -> Bool {
-        let lhs = CGPoint(x: round(lhs.x * 1_000_000_000) / 1_000_000_000,
-                          y: round(lhs.y * 1_000_000_000) / 1_000_000_000)
-        let rhs = CGPoint(x: round(rhs.x * 1_000_000_000) / 1_000_000_000,
-                          y: round(rhs.y * 1_000_000_000) / 1_000_000_000)
+        let lhs = CGPoint(x: round(lhs.x * 1_000_000) / 1_000_000,
+                          y: round(lhs.y * 1_000_000) / 1_000_000)
+        let rhs = CGPoint(x: round(rhs.x * 1_000_000) / 1_000_000,
+                          y: round(rhs.y * 1_000_000) / 1_000_000)
         return lhs == rhs
     }
 }
