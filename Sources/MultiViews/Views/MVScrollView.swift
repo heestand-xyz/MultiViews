@@ -25,6 +25,12 @@ public typealias MPEdgeInsets = NSEdgeInsets
 public typealias MPEdgeInsets = UIEdgeInsets
 #endif
 
+#if os(macOS)
+extension NSEdgeInsets {
+    public static let zero = NSEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+}
+#endif
+
 enum MVScrollDirection {
     case horizontal
     case vertical
