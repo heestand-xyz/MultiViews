@@ -12,16 +12,16 @@ import SwiftUI
 public typealias MPImage = NSImage
 public typealias MPImageView = NSImageView
 public extension Image {
-    init(image: NSImage) {
-        self.init(nsImage: image)
+    init(multiImage: NSImage) {
+        self.init(nsImage: multiImage)
     }
 }
 #else
 public typealias MPImage = UIImage
 public typealias MPImageView = UIImageView
 public extension Image {
-    init(image: UIImage) {
-        self.init(uiImage: image)
+    init(multiImage: UIImage) {
+        self.init(uiImage: multiImage)
     }
 }
 #endif
