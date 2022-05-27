@@ -19,37 +19,44 @@ public enum MVInteraction {
     
 public struct MVInteractView: ViewRepresentable {
     
+    let passthrough: Bool
     let interacted: (MVInteraction) -> ()
     let interacting: ((CGPoint) -> ())?
     let scrolling: ((CGPoint) -> ())?
 
-    public init(interacted: @escaping (MVInteraction) -> (),
-         interacting: ((CGPoint) -> ())? = nil,
-         scrolling: ((CGPoint) -> ())? = nil) {
+    public init(passthrough: Bool = false,
+                interacted: @escaping (MVInteraction) -> (),
+                interacting: ((CGPoint) -> ())? = nil,
+                scrolling: ((CGPoint) -> ())? = nil) {
+        self.passthrough = passthrough
         self.interacted = interacted
         self.interacting = interacting
         self.scrolling = scrolling
     }
     
     public func makeView(context: Context) -> MPView {
-        MainInteractView(interacted: interacted, interacting: interacting, scrolling: scrolling)
+        MainInteractView(passthrough: passthrough, interacted: interacted, interacting: interacting, scrolling: scrolling)
     }
     public func updateView(_ view: MPView, context: Context) {}
 }
 
 class MainInteractView: MPView {
     
+    let passthrough: Bool
     let interacted: (MVInteraction) -> ()
     let interacting: ((CGPoint) -> ())?
     let scrolling: ((CGPoint) -> ())?
     
-    init(interacted: @escaping (MVInteraction) -> (),
+    init(passthrough: Bool,
+         interacted: @escaping (MVInteraction) -> (),
          interacting: ((CGPoint) -> ())?,
          scrolling: ((CGPoint) -> ())? = nil) {
+        self.passthrough = passthrough
         self.interacted = interacted
         self.interacting = interacting
         self.scrolling = scrolling
         super.init(frame: .zero)
+        
     }
     
     required init?(coder: NSCoder) {
@@ -106,5 +113,27 @@ class MainInteractView: MPView {
     }
     #endif
     
-    
+    #if os(macOS)
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        let view = super.hitTest(point)
+        if passthrough {
+            if view == self {
+                interacting?(point)
+                return nil
+            }
+        }
+        return view
+    }
+    #else
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let view = super.hitTest(point, with: event)
+        if passthrough {
+            if view == self {
+                interacting?(point)
+                return nil
+            }
+        }
+        return view
+    }
+    #endif
 }
