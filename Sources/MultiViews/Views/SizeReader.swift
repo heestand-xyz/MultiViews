@@ -36,4 +36,9 @@ extension View {
     public func read(size: Binding<CGSize?>) -> some View {
         self.background(SizeReader(size: size))
     }
+    
+    public func frame(size: CGSize?) -> some View {
+        self.frame(width: size?.width ?? 0.0,
+                   height: size?.height ?? 0.0)
+    }
 }
