@@ -26,32 +26,35 @@ public struct AspectRatioView<Content: View>: View {
     
     public var body: some View {
         GeometryReader { geometry in
-            content()
-                .aspectRatio(aspectRatio, contentMode: contentMode)
-                .offset({
-                    
-                    guard contentMode == .fill
-                    else { return .zero }
-                    
-                    let size: CGSize = geometry.size
-                    let _aspectRatio = size.width / size.height
-                    
-                    let x: CGFloat = {
-                        if aspectRatio > _aspectRatio {
-                            return -(size.width * (aspectRatio / _aspectRatio) - size.width) / 2
-                        }
-                        return 0.0
-                    }()
-                    
-                    let y: CGFloat = {
-                        if aspectRatio < _aspectRatio {
-                            return -(size.height * (_aspectRatio / aspectRatio) - size.height) / 2
-                        }
-                        return 0.0
-                    }()
-                    
-                    return CGSize(width: x, height: y)
-                }())
+            ZStack {
+                Color.clear
+                content()
+                    .aspectRatio(aspectRatio, contentMode: contentMode)
+                    .offset({
+                        
+                        guard contentMode == .fill
+                        else { return .zero }
+                        
+                        let size: CGSize = geometry.size
+                        let _aspectRatio = size.width / size.height
+                        
+                        let x: CGFloat = {
+                            if aspectRatio > _aspectRatio {
+                                return -(size.width * (aspectRatio / _aspectRatio) - size.width) / 2
+                            }
+                            return 0.0
+                        }()
+                        
+                        let y: CGFloat = {
+                            if aspectRatio < _aspectRatio {
+                                return -(size.height * (_aspectRatio / aspectRatio) - size.height) / 2
+                            }
+                            return 0.0
+                        }()
+                        
+                        return CGSize(width: x, height: y)
+                    }())
+            }
         }
         .clipped()
     }
