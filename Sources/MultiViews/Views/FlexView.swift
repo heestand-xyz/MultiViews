@@ -7,21 +7,26 @@
 
 import SwiftUI
 
-public struct AspectRatioView<Content: View>: View {
+public struct FlexView<Content: View>: View {
     
-    let aspectRatio: CGFloat
     let contentMode: ContentMode
 
     let content: () -> Content
     
-    public init(aspectRatio: CGFloat,
-                contentMode: ContentMode,
+    public init(contentMode: ContentMode,
                 content: @escaping () -> Content) {
         
-        self.aspectRatio = aspectRatio
         self.contentMode = contentMode
         
         self.content = content
+    }
+    
+    @State var size: CGSize?
+    
+    private var aspectRatio: CGFloat {
+        guard let size
+        else { return 1.0 }
+        return size.width / size.height
     }
     
     public var body: some View {
@@ -29,6 +34,7 @@ public struct AspectRatioView<Content: View>: View {
             ZStack {
                 Color.clear
                 content()
+                    .read(size: $size)
                     .aspectRatio(aspectRatio, contentMode: contentMode)
                     .offset({
                         

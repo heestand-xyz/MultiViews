@@ -71,7 +71,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
                 scrollContentSize: Binding<CGSize>,
                 hasIndicators: Bool = true,
                 canScroll: Binding<Bool> = .constant(true),
-                content: @escaping () -> (Content)) {
+                content: @escaping () -> (Content) = { Color.clear })  {
         self.axis = axis
         self.padding = padding
         self.pageWidth = pageWidth
@@ -176,6 +176,13 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         
 //        print("<<< Scroll View Update >>>")
         
+        if context.coordinator.pageWidth != pageWidth {
+            context.coordinator.pageWidth = pageWidth
+        }
+        if context.coordinator.pageHeight != pageHeight {
+            context.coordinator.pageHeight = pageHeight
+        }
+        
         let scrollView: MPScrollView = view as! MPScrollView
         
         #if os(iOS)
@@ -253,8 +260,8 @@ public class MPScrollViewCoordinator: NSObject {
     
     var scrollView: MPScrollView!
     
-    let pageWidth: CGFloat?
-    let pageHeight: CGFloat?
+    var pageWidth: CGFloat?
+    var pageHeight: CGFloat?
     @Binding var scrollOffset: CGPoint
     
     var willScroll: Bool?
