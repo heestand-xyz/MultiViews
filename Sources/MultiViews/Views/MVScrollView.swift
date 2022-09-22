@@ -55,6 +55,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     @Binding var scrollOffset: CGPoint
     @Binding var scrollContainerSize: CGSize
     @Binding var scrollContentSize: CGSize
+//    @Binding var scrollActive: Bool
     
     let hasIndicators: Bool
 
