@@ -55,7 +55,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     @Binding var scrollOffset: CGPoint
     @Binding var scrollContainerSize: CGSize
     @Binding var scrollContentSize: CGSize
-//    @Binding var scrollActive: Bool
+    @Binding var scrollActive: Bool
     
     let hasIndicators: Bool
 
@@ -67,6 +67,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
                 padding: MPEdgeInsets = .zero,
                 pageWidth: CGFloat? = nil,
                 pageHeight: CGFloat? = nil,
+                scrollActive: Binding<Bool> = .constant(true),
                 scrollOffset: Binding<CGPoint>,
                 scrollContainerSize: Binding<CGSize>,
                 scrollContentSize: Binding<CGSize>,
@@ -77,6 +78,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         self.padding = padding
         self.pageWidth = pageWidth
         self.pageHeight = pageHeight
+        _scrollActive = scrollActive
         _scrollOffset = scrollOffset
         _scrollContainerSize = scrollContainerSize
         _scrollContentSize = scrollContentSize
@@ -135,7 +137,9 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         context.coordinator.setup()
         
         #if os(iOS)
-        context.coordinator.didStartScroll = {}
+        context.coordinator.didStartScroll = {
+            scrollActive = true
+        }
         context.coordinator.didScroll = { scrollOffset in
             if axis == .first {
                 if context.coordinator.scrollStartOffset == nil {
@@ -157,6 +161,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
             return nil
         }
         context.coordinator.didEndScroll = {
+            scrollActive = false
             context.coordinator.firstDirection = nil
             context.coordinator.scrollStartOffset = nil
         }
