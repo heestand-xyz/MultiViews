@@ -12,23 +12,23 @@ public struct BindableScrollView<Content: View>: View {
     
     @Binding var offset: CGFloat
     let detail: CGFloat
-    let anchor: UnitPoint?
+    let isMoving: Bool
     
     let axis: Axis
     let showsIndicators: Bool
     let content: () -> Content
     
     public init(offset: Binding<CGFloat>,
-                detail: CGFloat = 1.0 / .scale,
+                detail: CGFloat,
+                isMoving: Bool,
                 axis: Axis = .vertical,
                 showsIndicators: Bool = true,
-                anchor: UnitPoint? = nil,
                 content: @escaping () -> Content) {
         _offset = offset
         self.detail = detail
+        self.isMoving = isMoving
         self.axis = axis
         self.showsIndicators = showsIndicators
-        self.anchor = anchor
         self.content = content
     }
     
@@ -53,11 +53,11 @@ public struct BindableScrollView<Content: View>: View {
     }
     
     var globalIndex: Int {
-        Int(offset / detail)
+        Int(-offset / detail)
     }
     
     var localIndex: Int {
-        Int(origin / detail)
+        Int(-origin / detail)
     }
     
     private var count: Int {
@@ -79,25 +79,42 @@ public struct BindableScrollView<Content: View>: View {
                     .read(frame: $frame, in: .named("\(prefix)_\(id)"))
                     .background {
                         
-                        if axis == .vertical {
-                            VStack(spacing: 0.0) {
-                                marks()
-                            }
-                        } else {
-                            HStack(spacing: 0.0) {
-                                marks()
+                        Group {
+                            if axis == .vertical {
+                                VStack(spacing: 0.0) {
+                                    marks()
+                                }
+                            } else {
+                                HStack(spacing: 0.0) {
+                                    marks()
+                                }
                             }
                         }
+                        .drawingGroup()
                     }
             }
             .onChange(of: globalIndex) { globalIndex in
+                print("--->", "globalIndex:", globalIndex)
                 guard globalIndex != localIndex else { return }
-                scrollViewProxy.scrollTo("\(prefix)_\(id)_\(globalIndex)", anchor: anchor)
+                print("--->>>")
+                scrollViewProxy.scrollTo("\(prefix)_\(id)_\(globalIndex)",
+                                         anchor: axis == .vertical ? .top : .leading)
+                print("--->>>>>>")
             }
             .onChange(of: localIndex) { localIndex in
+                guard !isMoving
+                else { return }
+                print("---<", "localIndex:", localIndex)
                 guard localIndex != globalIndex else { return }
-                offset = CGFloat(localIndex) * detail
+                print("---<<<")
+                offset = CGFloat(-localIndex) * detail
+                print("---<<<<<<")
             }
+//            .onChange(of: isMoving) { isMoving in
+//                if !isMoving {
+//                    offset = CGFloat(-localIndex) * detail
+//                }
+//            }
         }
         .coordinateSpace(name: "\(prefix)_\(id)")
     }
