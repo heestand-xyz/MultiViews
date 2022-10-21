@@ -10,7 +10,8 @@ import SwiftUI
 @available(iOS 15.0, macOS 12.0, *)
 public struct BindableScrollView<Content: View>: View {
     
-    @Binding var offset: CGFloat
+    @Binding var detailOffset: CGFloat
+    @Binding var smoothOffset: CGFloat
     let detail: CGFloat
     let isMoving: Bool
     
@@ -18,13 +19,15 @@ public struct BindableScrollView<Content: View>: View {
     let showsIndicators: Bool
     let content: () -> Content
     
-    public init(offset: Binding<CGFloat>,
+    public init(detailOffset: Binding<CGFloat>,
+                smoothOffset: Binding<CGFloat>,
                 detail: CGFloat,
                 isMoving: Bool,
                 axis: Axis = .vertical,
                 showsIndicators: Bool = true,
                 content: @escaping () -> Content) {
-        _offset = offset
+        _detailOffset = detailOffset
+        _smoothOffset = smoothOffset
         self.detail = detail
         self.isMoving = isMoving
         self.axis = axis
@@ -53,7 +56,7 @@ public struct BindableScrollView<Content: View>: View {
     }
     
     var globalIndex: Int {
-        Int(-offset / detail)
+        Int(-detailOffset / detail)
     }
     
     var localIndex: Int {
@@ -94,27 +97,24 @@ public struct BindableScrollView<Content: View>: View {
                     }
             }
             .onChange(of: globalIndex) { globalIndex in
-                print("--->", "globalIndex:", globalIndex)
                 guard globalIndex != localIndex else { return }
-                print("--->>>")
                 scrollViewProxy.scrollTo("\(prefix)_\(id)_\(globalIndex)",
                                          anchor: axis == .vertical ? .top : .leading)
-                print("--->>>>>>")
             }
             .onChange(of: localIndex) { localIndex in
                 guard !isMoving
                 else { return }
-                print("---<", "localIndex:", localIndex)
                 guard localIndex != globalIndex else { return }
-                print("---<<<")
-                offset = CGFloat(-localIndex) * detail
-                print("---<<<<<<")
+                detailOffset = CGFloat(-localIndex) * detail
             }
-//            .onChange(of: isMoving) { isMoving in
-//                if !isMoving {
-//                    offset = CGFloat(-localIndex) * detail
-//                }
-//            }
+            .onChange(of: origin) { origin in
+                smoothOffset = origin
+            }
+            .onChange(of: isMoving) { isMoving in
+                if !isMoving {
+                    smoothOffset = detailOffset
+                }
+            }
         }
         .coordinateSpace(name: "\(prefix)_\(id)")
     }
