@@ -10,66 +10,66 @@ import SwiftUI
 @available(iOS 15.0, macOS 12.0, *)
 public struct BindableScrollView<Content: View>: View {
     
-    @Binding var detailOffset: CGFloat
-    @Binding var smoothOffset: CGFloat
-    let detail: CGFloat
+    @Binding var offset: CGFloat
     let isMoving: Bool
     
     let axis: Axis
     let showsIndicators: Bool
     let content: () -> Content
     
-    public init(detailOffset: Binding<CGFloat>,
-                smoothOffset: Binding<CGFloat>,
-                detail: CGFloat,
+    public init(offset: Binding<CGFloat>,
                 isMoving: Bool,
                 axis: Axis = .vertical,
                 showsIndicators: Bool = true,
                 content: @escaping () -> Content) {
-        _detailOffset = detailOffset
-        _smoothOffset = smoothOffset
-        self.detail = detail
+        _offset = offset
         self.isMoving = isMoving
         self.axis = axis
         self.showsIndicators = showsIndicators
         self.content = content
     }
     
-    @State private var frame: CGRect?
-    
-    private var origin: CGFloat {
+    @State private var containerFrame: CGRect?
+    @State private var contentFrame: CGRect?
+
+    private var contentOrigin: CGFloat {
         switch axis {
         case .horizontal:
-            return frame?.minX ?? 0.0
+            return contentFrame?.minX ?? 0.0
         case .vertical:
-            return frame?.minY ?? 0.0
+            return contentFrame?.minY ?? 0.0
         }
     }
     
-    private var length: CGFloat {
+    private var containerLength: CGFloat {
         switch axis {
         case .horizontal:
-            return frame?.size.width ?? 0.0
+            return containerFrame?.size.width ?? 0.0
         case .vertical:
-            return frame?.size.height ?? 0.0
+            return containerFrame?.size.height ?? 0.0
         }
     }
     
-    var globalIndex: Int {
-        Int(-detailOffset / detail)
-    }
-    
-    var localIndex: Int {
-        Int(-origin / detail)
-    }
-    
-    private var count: Int {
-        Int(length / detail)
+    private var contentLength: CGFloat {
+        switch axis {
+        case .horizontal:
+            return contentFrame?.size.width ?? 0.0
+        case .vertical:
+            return contentFrame?.size.height ?? 0.0
+        }
     }
     
     @State private var id: UUID = UUID()
     
     private let prefix: String = "bindable-scroll-view"
+    
+    private var spaceIdentifier: String {
+        "\(prefix)_\(id)_space"
+    }
+    
+    private var contentIdentifier: String {
+        "\(prefix)_\(id)_content"
+    }
     
     public var body: some View {
         
@@ -79,57 +79,29 @@ public struct BindableScrollView<Content: View>: View {
             ScrollView(scrollAxis, showsIndicators: showsIndicators) {
             
                 content()
-                    .read(frame: $frame, in: .named("\(prefix)_\(id)"))
-                    .background {
-                        
-                        Group {
-                            if axis == .vertical {
-                                VStack(spacing: 0.0) {
-                                    marks()
-                                }
-                            } else {
-                                HStack(spacing: 0.0) {
-                                    marks()
-                                }
-                            }
-                        }
-                        .drawingGroup()
+                    .read(frame: $contentFrame, in: .named(spaceIdentifier))
+                    .background(alignment: .topLeading) {
+                        Color.clear
+                            .id(contentIdentifier)
+                            .frame(width: 0.0,
+                                   height: 0.0)
                     }
             }
-            .onChange(of: globalIndex) { globalIndex in
-                guard globalIndex != localIndex else { return }
-                scrollViewProxy.scrollTo("\(prefix)_\(id)_\(globalIndex)",
-                                         anchor: axis == .vertical ? .top : .leading)
+            .onChange(of: offset) { offset in
+                guard offset != contentOrigin else { return }
+                let fraction = offset / containerLength
+                let anchor = UnitPoint(x: axis == .horizontal ? fraction : 0.0,
+                                       y: axis == .vertical ? fraction : 0.0)
+                scrollViewProxy.scrollTo(contentIdentifier, anchor: anchor)
             }
-            .onChange(of: localIndex) { localIndex in
+            .onChange(of: contentOrigin) { origin in
                 guard !isMoving
                 else { return }
-                guard localIndex != globalIndex else { return }
-                detailOffset = CGFloat(-localIndex) * detail
-            }
-            .onChange(of: origin) { origin in
-                smoothOffset = origin
-            }
-            .onChange(of: isMoving) { isMoving in
-                if !isMoving {
-                    smoothOffset = detailOffset
-                }
+                guard origin != offset else { return }
+                offset = origin
             }
         }
-        .coordinateSpace(name: "\(prefix)_\(id)")
-    }
-    
-    @ViewBuilder
-    private func marks() -> some View {
-        
-        ForEach(Array(0..<count), id: \.self) { index in
-        
-            Color.clear
-                .frame(width: axis == .horizontal ? detail : nil,
-                       height: axis == .vertical ? detail : nil)
-                .id("\(prefix)_\(id)_\(index)")
-        }
-        
-        Spacer(minLength: 0.0)
+        .read(frame: $containerFrame, in: .local)
+        .coordinateSpace(name: spaceIdentifier)
     }
 }
