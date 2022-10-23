@@ -88,6 +88,7 @@ public struct BindableScrollView<Content: View>: View {
                     }
             }
             .onChange(of: offset) { offset in
+                guard isMoving else { return }
                 guard offset != contentOrigin else { return }
                 let fraction = offset / containerLength
                 let anchor = UnitPoint(x: axis == .horizontal ? fraction : 0.0,
@@ -95,8 +96,7 @@ public struct BindableScrollView<Content: View>: View {
                 scrollViewProxy.scrollTo(contentIdentifier, anchor: anchor)
             }
             .onChange(of: contentOrigin) { origin in
-                guard !isMoving
-                else { return }
+                guard !isMoving else { return }
                 guard origin != offset else { return }
                 offset = origin
             }
