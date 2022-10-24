@@ -95,10 +95,10 @@ public struct BindableScrollView<Content: View>: View {
                                        y: axis == .vertical ? fraction : 0.0)
                 scrollViewProxy.scrollTo(contentIdentifier, anchor: anchor)
             }
-            .onChange(of: contentOrigin) { origin in
+            .onChange(of: contentOrigin) { contentOrigin in
                 guard !isMoving else { return }
-                guard origin != offset else { return }
-                offset = origin
+                guard contentOrigin != offset else { return }
+                offset = contentOrigin
             }
         }
         .read(frame: $containerFrame, in: .local)
