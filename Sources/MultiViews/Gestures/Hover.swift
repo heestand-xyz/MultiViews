@@ -47,8 +47,9 @@ class HoverView: MPView {
     
     private func setup() {
         #if !os(macOS)
-        let hoverGestureRecognizer = UIHoverGestureRecognizer(target: self, action: #selector(didHover))
-        addGestureRecognizer(hoverGestureRecognizer)
+//        let hoverGestureRecognizer = UIHoverGestureRecognizer(target: self, action: #selector(didHover))
+//        hoverGestureRecognizer.delegate = self
+//        addGestureRecognizer(hoverGestureRecognizer)
         #endif
     }
     
@@ -102,18 +103,30 @@ class HoverView: MPView {
     
     #else
     
-    @objc
-    func didHover(_ gesture: UIHoverGestureRecognizer) {
-        switch gesture.state {
-        case .changed:
-            offset = gesture.location(in: self)
-            if #available(iOS 16.1, *) {
-                zOffset = gesture.zOffset
-            }
-        default:
-            break
-        }
-    }
+//    @objc
+//    func didHover(_ gesture: UIHoverGestureRecognizer) {
+//        print(gesture.location(in: self))
+//        switch gesture.state {
+//        case .changed:
+//            offset = gesture.location(in: self)
+//            if #available(iOS 16.1, *) {
+//                zOffset = gesture.zOffset
+//            }
+//        default:
+//            break
+//        }
+//    }
     
     #endif
 }
+
+#if !os(macOS)
+
+//extension HoverView: UIGestureRecognizerDelegate {
+//
+//    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+//        true
+//    }
+//}
+
+#endif
