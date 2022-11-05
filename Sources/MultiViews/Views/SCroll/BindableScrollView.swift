@@ -138,7 +138,9 @@ public struct BindableScrollView<Content: View>: View {
                         offset = contentOrigin
                     }
                     .onAppear {
-                        scroll(to: offset, with: scrollViewProxy)
+                        DispatchQueue.main.async {
+                            scroll(to: offset, with: scrollViewProxy)
+                        }
                     }
                 }
                     
