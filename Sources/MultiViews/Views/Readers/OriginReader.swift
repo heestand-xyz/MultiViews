@@ -26,9 +26,6 @@ public struct OriginReader: View {
                 .onChange(of: geometry.frame(in: coordinateSpace).origin) { newOrigin in
                     origin = newOrigin
                 }
-                .onDisappear {
-                    origin = nil
-                }
         }
     }
 }

@@ -24,9 +24,6 @@ public struct SizeReader: View {
                 .onChange(of: geometry.size) { size in
                     self.size = size
                 }
-                .onDisappear {
-                    size = nil
-                }
         }
     }
 }
