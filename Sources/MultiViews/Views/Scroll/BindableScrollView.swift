@@ -8,39 +8,6 @@
 import SwiftUI
 
 @available(iOS 15.0, macOS 12.0, *)
-public struct StateScrollView<Content: View>: View {
-    
-    let isActive: Bool
-    
-    let axis: Axis
-    let showsIndicators: Bool
-    let content: () -> Content
-    
-    @State private var offset: CGFloat = 0.0
-
-    public init(axis: Axis = .vertical,
-                showsIndicators: Bool = true,
-                isActive: Bool,
-                content: @escaping () -> Content) {
-        self.axis = axis
-        self.showsIndicators = showsIndicators
-        self.isActive = isActive
-        self.content = content
-    }
-    
-    public var body: some View {
-        BindableScrollView(axis: axis,
-                           showsIndicators: showsIndicators,
-                           isActive: isActive,
-                           isMoving: false,
-                           offset: $offset,
-                           content: content)
-    }
-}
-
-// ............
-
-@available(iOS 15.0, macOS 12.0, *)
 public struct BindableScrollView<Content: View>: View {
     
     @Binding var offset: CGFloat
@@ -56,7 +23,7 @@ public struct BindableScrollView<Content: View>: View {
                 isActive: Bool = true,
                 isMoving: Bool,
                 offset: Binding<CGFloat>,
-                content: @escaping () -> Content) {
+                @ViewBuilder content: @escaping () -> Content) {
         self.axis = axis
         self.showsIndicators = showsIndicators
         self.isActive = isActive
@@ -149,9 +116,11 @@ public struct BindableScrollView<Content: View>: View {
                 ZStack {
                     Color.clear
                         .overlay(alignment: .topLeading) {
-                            content()
-                                .offset(x: axis == .horizontal ? offset : 0.0,
-                                        y: axis == .vertical ? offset : 0.0)
+                            VStack {
+                                content()
+                            }
+                            .offset(x: axis == .horizontal ? offset : 0.0,
+                                    y: axis == .vertical ? offset : 0.0)
                         }
                         .clipped()
                 }
