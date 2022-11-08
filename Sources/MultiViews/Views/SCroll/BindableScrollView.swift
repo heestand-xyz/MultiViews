@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-@available(iOS 15.0, macOS 12.0, *)
+@available(iOS 16.0, macOS 13.0, *)
 public struct BindableScrollView<Content: View>: View {
     
     @Binding var offset: CGFloat
@@ -76,53 +76,34 @@ public struct BindableScrollView<Content: View>: View {
     
     public var body: some View {
      
-        ZStack {
+        ScrollViewReader { scrollViewProxy in
             
-            if isActive {
+            let scrollAxis: Axis.Set = axis == .vertical ? .vertical : .horizontal
+            ScrollView(scrollAxis, showsIndicators: showsIndicators) {
                 
-                ScrollViewReader { scrollViewProxy in
-                    
-                    let scrollAxis: Axis.Set = axis == .vertical ? .vertical : .horizontal
-                    ScrollView(scrollAxis, showsIndicators: showsIndicators) {
-                        
-                        content()
-                            .read(frame: $contentFrame, in: .named(spaceIdentifier))
-                            .background(alignment: .topLeading) {
-                                Color.clear
-                                    .id(contentIdentifier)
-                                    .frame(width: 0.0,
-                                           height: 0.0)
-                            }
+                content()
+                    .read(frame: $contentFrame, in: .named(spaceIdentifier))
+                    .background(alignment: .topLeading) {
+                        Color.clear
+                            .id(contentIdentifier)
+                            .frame(width: 0.0,
+                                   height: 0.0)
                     }
-                    .onChange(of: offset) { offset in
-                        guard isMoving else { return }
-                        guard offset != contentOrigin else { return }
-                        scroll(to: offset, with: scrollViewProxy)
-                    }
-                    .onChange(of: contentOrigin) { contentOrigin in
-                        guard !isMoving else { return }
-                        guard contentOrigin != offset else { return }
-                        offset = contentOrigin
-                    }
-                    .onAppear {
-                        DispatchQueue.main.async {
-                            scroll(to: offset, with: scrollViewProxy)
-                        }
-                    }
-                }
-                    
-            } else {
-                
-                ZStack {
-                    Color.clear
-                        .overlay(alignment: .topLeading) {
-                            VStack {
-                                content()
-                            }
-                            .offset(x: axis == .horizontal ? offset : 0.0,
-                                    y: axis == .vertical ? offset : 0.0)
-                        }
-                        .clipped()
+            }
+            .scrollDisabled(!isActive)
+            .onChange(of: offset) { offset in
+                guard isMoving else { return }
+                guard offset != contentOrigin else { return }
+                scroll(to: offset, with: scrollViewProxy)
+            }
+            .onChange(of: contentOrigin) { contentOrigin in
+                guard !isMoving else { return }
+                guard contentOrigin != offset else { return }
+                offset = contentOrigin
+            }
+            .onAppear {
+                DispatchQueue.main.async {
+                    scroll(to: offset, with: scrollViewProxy)
                 }
             }
         }
