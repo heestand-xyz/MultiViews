@@ -11,10 +11,14 @@ public struct FrameReader: View {
     
     @Binding var frame: CGRect?
     let coordinateSpace: CoordinateSpace
+    let clear: Bool
     
-    public init(frame: Binding<CGRect?>, in coordinateSpace: CoordinateSpace) {
+    public init(frame: Binding<CGRect?>,
+                in coordinateSpace: CoordinateSpace,
+                clear: Bool) {
         _frame = frame
         self.coordinateSpace = coordinateSpace
+        self.clear = clear
     }
     
     public var body: some View {
@@ -26,14 +30,19 @@ public struct FrameReader: View {
                 .onChange(of: geometry.frame(in: coordinateSpace)) { newFrame in
                     frame = newFrame
                 }
+                .onDisappear {
+                    if clear {
+                        frame = nil                        
+                    }
+                }
         }
     }
 }
 
 extension View {
     
-    public func read(frame: Binding<CGRect?>, in coordinateSpace: CoordinateSpace) -> some View {
-        self.background(FrameReader(frame: frame, in: coordinateSpace))
+    public func read(frame: Binding<CGRect?>, in coordinateSpace: CoordinateSpace, clear: Bool = false) -> some View {
+        self.background(FrameReader(frame: frame, in: coordinateSpace, clear: clear))
     }
     
     public func frame(_ frame: CGRect?) -> some View {
