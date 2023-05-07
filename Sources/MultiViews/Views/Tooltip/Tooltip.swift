@@ -15,9 +15,11 @@ public struct Tooltip: View {
     public struct Action: Identifiable {
         public var id: String { title }
         let title: String
+        let isDestructive: Bool
         let callback: () -> ()
-        public init(title: String, callback: @escaping () -> Void) {
+        public init(title: String, isDestructive: Bool = false, callback: @escaping () -> Void) {
             self.title = title
+            self.isDestructive = isDestructive
             self.callback = callback
         }
     }

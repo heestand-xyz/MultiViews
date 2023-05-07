@@ -49,7 +49,7 @@ struct TooltipView: UIViewRepresentable {
         func editMenuInteraction(_ interaction: UIEditMenuInteraction, menuFor configuration: UIEditMenuConfiguration, suggestedActions: [UIMenuElement]) -> UIMenu? {
             var elements: [UIMenuElement] = []
             for action in actions {
-                let element = UIAction(title: action.title) { _ in
+                let element = UIAction(title: action.title, attributes: action.isDestructive ? .destructive : []) { _ in
                     action.callback()
                 }
                 elements.append(element)
