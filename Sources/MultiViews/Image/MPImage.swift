@@ -23,20 +23,22 @@ public extension Image {
 }
 #endif
 
-#if os(macOS)
-public extension MPImage {
-    func pngData() -> Data? {
-        guard let representation = tiffRepresentation else { return nil }
-        guard let bitmap = NSBitmapImageRep(data: representation) else { return nil }
-        return bitmap.representation(using: .png, properties: [:])
-    }
-    func jpegData(compressionQuality: CGFloat) -> Data? {
-        guard let representation = tiffRepresentation else { return nil }
-        guard let bitmap = NSBitmapImageRep(data: representation) else { return nil }
-        return bitmap.representation(using: .jpeg, properties: [.compressionFactor: compressionQuality])
-    }
-}
-#endif
+/// Ambiguous use of 'pngData()'
+/// Moved to TextureMap
+//#if os(macOS)
+//public extension MPImage {
+//    func pngData() -> Data? {
+//        guard let representation = tiffRepresentation else { return nil }
+//        guard let bitmap = NSBitmapImageRep(data: representation) else { return nil }
+//        return bitmap.representation(using: .png, properties: [:])
+//    }
+//    func jpegData(compressionQuality: CGFloat) -> Data? {
+//        guard let representation = tiffRepresentation else { return nil }
+//        guard let bitmap = NSBitmapImageRep(data: representation) else { return nil }
+//        return bitmap.representation(using: .jpeg, properties: [.compressionFactor: compressionQuality])
+//    }
+//}
+//#endif
 
 #if os(macOS)
 public extension NSImage {

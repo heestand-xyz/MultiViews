@@ -2,7 +2,7 @@
 //  Created by Anton Heestand on 2021-05-05.
 //
 
-import Foundation
+import SwiftUI
 
 public struct ViewRep: ViewRepresentable {
     
