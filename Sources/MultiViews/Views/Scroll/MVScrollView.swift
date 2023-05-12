@@ -53,13 +53,19 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     let pageHeight: CGFloat?
 
     @Binding var scrollOffset: CGPoint
-    @Binding var scrollContainerSize: CGSize
-    @Binding var scrollContentSize: CGSize
+    @Binding var zoomScale: CGFloat
+    @Binding var containerSize: CGSize
+    @Binding var contentSize: CGSize
     @Binding var scrollActive: Bool
+    @Binding var zoomActive: Bool
     
     let hasIndicators: Bool
+    
+    let minZoom: CGFloat
+    let maxZoom: CGFloat
 
     @Binding var canScroll: Bool
+    @Binding var canZoom: Bool
 
     let content: () -> (Content)
     
@@ -67,12 +73,17 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
                 padding: MPEdgeInsets = .zero,
                 pageWidth: CGFloat? = nil,
                 pageHeight: CGFloat? = nil,
-                scrollActive: Binding<Bool> = .constant(true),
+                scrollActive: Binding<Bool> = .constant(false),
                 scrollOffset: Binding<CGPoint>,
-                scrollContainerSize: Binding<CGSize>,
-                scrollContentSize: Binding<CGSize>,
+                zoomActive: Binding<Bool> = .constant(false),
+                zoomScale: Binding<CGFloat> = .constant(1.0),
+                containerSize: Binding<CGSize>,
+                contentSize: Binding<CGSize>,
+                minZoom: CGFloat = 0.25,
+                maxZoom: CGFloat = 4.0,
                 hasIndicators: Bool = true,
                 canScroll: Binding<Bool> = .constant(true),
+                canZoom: Binding<Bool> = .constant(true),
                 content: @escaping () -> (Content) = { Color.clear })  {
         self.axis = axis
         self.padding = padding
@@ -80,16 +91,19 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         self.pageHeight = pageHeight
         _scrollActive = scrollActive
         _scrollOffset = scrollOffset
-        _scrollContainerSize = scrollContainerSize
-        _scrollContentSize = scrollContentSize
+        _zoomActive = zoomActive
+        _zoomScale = zoomScale
+        _containerSize = containerSize
+        _contentSize = contentSize
         self.hasIndicators = hasIndicators
+        self.minZoom = minZoom
+        self.maxZoom = maxZoom
         _canScroll = canScroll
+        _canZoom = canZoom
         self.content = content
     }
     
     public func makeView(context: Context) -> MPView {
-        
-//        print("<<< <<< Scroll View Make >>> >>>")
         
         let host = MPHostingController(rootView: content())
         
@@ -105,6 +119,14 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         scrollView.contentInsets = padding
         #else
         scrollView.contentInset = padding
+        #endif
+        
+        #if os(iOS)
+        scrollView.minimumZoomScale = minZoom
+        scrollView.maximumZoomScale = maxZoom
+        #elseif os(macOS)
+        scrollView.minMagnification = minZoom
+        scrollView.maxMagnification = maxZoom
         #endif
         
         let view: MPView = host.view
@@ -165,7 +187,16 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
             context.coordinator.firstDirection = nil
             context.coordinator.scrollStartOffset = nil
         }
+        context.coordinator.didStartZoom = {
+            zoomActive = true
+        }
+        context.coordinator.didEndZoom = {
+            zoomActive = false
+        }
         #endif
+        context.coordinator.didZoom = { zoomScale in
+            self.zoomScale = zoomScale
+        }
         
         context.coordinator.padding = padding
         #if os(iOS)
@@ -179,8 +210,6 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     }
     
     public func updateView(_ view: MPView, context: Context) {
-        
-//        print("<<< Scroll View Update >>>")
         
         if context.coordinator.pageWidth != pageWidth {
             context.coordinator.pageWidth = pageWidth
@@ -204,19 +233,19 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         scrollView.usesPredominantAxisScrolling = false
         #endif
         
-        let couldNotScroll: Bool = scrollView.contentSize.width < scrollContainerSize.width && scrollView.contentSize.height < scrollContainerSize.height
-        let canNotScroll: Bool = scrollContentSize.width < scrollContainerSize.width && scrollContentSize.height < scrollContainerSize.height
+        let couldNotScroll: Bool = scrollView.contentSize.width < containerSize.width && scrollView.contentSize.height < containerSize.height
+        let canNotScroll: Bool = contentSize.width < containerSize.width && contentSize.height < containerSize.height
         func roundSize(_ size: CGSize) -> CGSize {
             CGSize(width: round(size.width), height: round(size.height))
         }
-        let sizeIsNew: Bool = roundSize(scrollView.contentSize) != roundSize(scrollContentSize)
+        let sizeIsNew: Bool = roundSize(scrollView.contentSize) != roundSize(contentSize)
         #if os(iOS)
         let offsetIsNew: Bool = !compare(scrollView.contentOffset, rhs: scrollOffset)
         if offsetIsNew {
             scrollView.setContentOffset(scrollOffset, animated: false)
         }
         if sizeIsNew {
-            scrollView.contentSize = scrollContentSize
+            scrollView.contentSize = contentSize
         }
         if !couldNotScroll && canNotScroll {
             RunLoop.current.add(Timer(timeInterval: 0.1, repeats: false, block: { _ in
@@ -229,7 +258,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
             scrollView.contentView.setBoundsOrigin(scrollOffset)
         }
         if sizeIsNew {
-            scrollView.documentView?.setFrameSize(scrollContentSize)
+            scrollView.documentView?.setFrameSize(contentSize)
         }
         if !couldNotScroll && canNotScroll {
             scrollView.contentView.setBoundsOrigin(.zero)
@@ -245,6 +274,17 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
             context.coordinator.willScroll = canScroll
         }
         
+        if canZoom {
+            #if os(iOS)
+            if zoomScale != scrollView.zoomScale {
+                scrollView.zoom(to: zoomScale, animated: false)
+            }
+            #elseif os(macOS)
+            if zoomScale != scrollView.magnification {
+                scrollView.magnification = zoomScale
+            }
+            #endif
+        }
     }
     
     public func makeCoordinator() -> MPScrollViewCoordinator {
@@ -275,9 +315,14 @@ public class MPScrollViewCoordinator: NSObject {
     
     var isScrolling: Bool = false
     var scrollStartOffset: CGPoint?
+    
     var didStartScroll: (() -> ())?
     var didScroll: ((CGPoint) -> CGPoint?)?
     var didEndScroll: (() -> ())?
+    
+    var didStartZoom: (() -> ())?
+    var didZoom: ((CGFloat) -> ())?
+    var didEndZoom: (() -> ())?
 
     init(padding: MPEdgeInsets,
          pageWidth: CGFloat?,
@@ -292,6 +337,7 @@ public class MPScrollViewCoordinator: NSObject {
 }
 
 #if os(macOS)
+
 extension MPScrollViewCoordinator {
     
     func setup() {
@@ -304,10 +350,13 @@ extension MPScrollViewCoordinator {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.scrollOffset = self.scrollView.contentView.bounds.origin
+            self.didZoom?(self.scrollView.magnification)
         }
     }
 }
+
 #else
+
 extension MPScrollViewCoordinator: UIScrollViewDelegate {
     
     func setup() {}
@@ -363,5 +412,21 @@ extension MPScrollViewCoordinator: UIScrollViewDelegate {
         didEndScroll?()
     }
     
+    public func viewForZooming(in scrollView: UIScrollView) -> UIView? {
+        scrollView.subviews.first
+    }
+    
+    public func scrollViewWillBeginZooming(_ scrollView: UIScrollView, with view: UIView?) {
+        didStartZoom?()
+    }
+    
+    public func scrollViewDidZoom(_ scrollView: UIScrollView) {
+        didZoom?(scrollView.zoomScale)
+    }
+    
+    public func scrollViewDidEndZooming(_ scrollView: UIScrollView, with view: UIView?, atScale scale: CGFloat) {
+        didEndZoom?()
+    }
 }
+
 #endif
