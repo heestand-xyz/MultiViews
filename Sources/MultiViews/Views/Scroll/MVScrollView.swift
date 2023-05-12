@@ -66,6 +66,8 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
 
     @Binding var canScroll: Bool
     let canZoom: Bool
+    
+    let centering: Bool
 
     let content: () -> (Content)
     
@@ -84,6 +86,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
                 hasIndicators: Bool = true,
                 canScroll: Binding<Bool> = .constant(true),
                 canZoom: Bool = false,
+                centering: Bool = false,
                 content: @escaping () -> (Content) = { Color.clear })  {
         self.axis = axis
         self.padding = padding
@@ -100,6 +103,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         self.maxZoom = maxZoom
         _canScroll = canScroll
         self.canZoom = canZoom
+        self.centering = centering
         self.content = content
     }
     
@@ -197,6 +201,15 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         }
         #endif
         
+        var padding = padding
+        if centering {
+            let horizontal = contentSize.width < containerSize.width ? (containerSize.width - contentSize.width) / 2 : 0.0
+            let vertical = contentSize.height < containerSize.height ? (containerSize.height - contentSize.height) / 2 : 0.0
+            padding = UIEdgeInsets(top: vertical + padding.top,
+                                   left: horizontal + padding.left,
+                                   bottom: vertical + padding.bottom,
+                                   right: horizontal + padding.right)
+        }
         context.coordinator.padding = padding
         #if os(iOS)
         scrollView.contentInset = padding
@@ -232,6 +245,8 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         scrollView.usesPredominantAxisScrolling = false
         #endif
         
+        let contentSize: CGSize = contentSize * zoomScale
+        let contentOffset: CGPoint = remapIn(offset: scrollOffset)
         let couldNotScroll: Bool = scrollView.contentSize.width < containerSize.width && scrollView.contentSize.height < containerSize.height
         let canNotScroll: Bool = contentSize.width < containerSize.width && contentSize.height < containerSize.height
         func roundSize(_ size: CGSize) -> CGSize {
@@ -239,9 +254,9 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         }
         let sizeIsNew: Bool = roundSize(scrollView.contentSize) != roundSize(contentSize)
         #if os(iOS)
-        let offsetIsNew: Bool = !compare(scrollView.contentOffset, rhs: scrollOffset)
+        let offsetIsNew: Bool = !compare(scrollView.contentOffset, rhs: contentOffset)
         if offsetIsNew {
-            scrollView.setContentOffset(scrollOffset, animated: false)
+            scrollView.setContentOffset(contentOffset, animated: false)
         }
         if sizeIsNew {
             scrollView.contentSize = contentSize
@@ -252,9 +267,9 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
             }), forMode: .common)
         }
         #elseif os(macOS)
-        let offsetIsNew: Bool = scrollView.contentView.bounds.origin != scrollOffset
+        let offsetIsNew: Bool = scrollView.contentView.bounds.origin != contentOffset
         if offsetIsNew {
-            scrollView.contentView.setBoundsOrigin(scrollOffset)
+            scrollView.contentView.setBoundsOrigin(contentOffset)
         }
         if sizeIsNew {
             scrollView.documentView?.setFrameSize(contentSize)
@@ -287,7 +302,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     }
     
     public func makeCoordinator() -> MPScrollViewCoordinator {
-        MPScrollViewCoordinator(contentSize: contentSize, padding: padding, pageWidth: pageWidth, pageHeight: pageHeight, scrollOffset: $scrollOffset, zoomScale: $zoomScale, canZoom: canZoom)
+        MPScrollViewCoordinator(containerSize: containerSize, contentSize: contentSize, padding: padding, pageWidth: pageWidth, pageHeight: pageHeight, scrollOffset: $scrollOffset, zoomScale: $zoomScale, canZoom: canZoom, centering: centering)
     }
     
     func compare(_ lhs: CGPoint, rhs: CGPoint) -> Bool {
@@ -297,11 +312,19 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
                           y: round(rhs.y * 1_000_000) / 1_000_000)
         return lhs == rhs
     }
+    
+    func remapIn(offset: CGPoint) -> CGPoint {
+        guard centering else { return offset }
+        return offset - (containerSize - contentSize) / 2
+    }
 }
 
 public class MPScrollViewCoordinator: NSObject {
     
     var padding: MPEdgeInsets
+    
+    let containerSize: CGSize
+    let contentSize: CGSize
     
     var scrollView: MPScrollView!
     #if os(iOS)
@@ -326,21 +349,33 @@ public class MPScrollViewCoordinator: NSObject {
     let canZoom: Bool
     var didStartZoom: (() -> ())?
     var didEndZoom: (() -> ())?
+    
+    let centering: Bool
 
-    init(contentSize: CGSize,
+    init(containerSize: CGSize,
+         contentSize: CGSize,
          padding: MPEdgeInsets,
          pageWidth: CGFloat?,
          pageHeight: CGFloat?,
          scrollOffset: Binding<CGPoint>,
          zoomScale: Binding<CGFloat>,
-         canZoom: Bool) {
+         canZoom: Bool,
+         centering: Bool) {
+        self.containerSize = containerSize
+        self.contentSize = contentSize
         self.padding = padding
         self.pageWidth = pageWidth
         self.pageHeight = pageHeight
         _scrollOffset = scrollOffset
         _zoomScale = zoomScale
         self.canZoom = canZoom
+        self.centering = centering
         super.init()
+    }
+    
+    func remapOut(offset: CGPoint) -> CGPoint {
+        guard centering else { return offset }
+        return offset + (containerSize - contentSize) / 2
     }
 }
 
@@ -357,7 +392,7 @@ extension MPScrollViewCoordinator {
     @objc func boundsChange() {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            self.scrollOffset = self.scrollView.contentView.bounds.origin
+            self.scrollOffset = remapOut(offset: self.scrollView.contentView.bounds.origin)
             self.zoomScale = self.scrollView.magnification
         }
     }
@@ -380,8 +415,8 @@ extension MPScrollViewCoordinator: UIScrollViewDelegate {
         if let contentOffset = contentOffset {
             scrollView.contentOffset = contentOffset
         }
-        DispatchQueue.main.async { [weak self] in
-            self?.scrollOffset = contentOffset ?? scrollView.contentOffset
+        DispatchQueue.main.async {
+            self.scrollOffset = self.remapOut(offset: contentOffset ?? scrollView.contentOffset)
         }
     }
     
