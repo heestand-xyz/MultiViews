@@ -237,29 +237,31 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         scrollView.alwaysBounceHorizontal = axis.isHorizontal
         scrollView.alwaysBounceVertical = axis.isVertical
         #elseif os(macOS)
-        scrollView.hasVerticalScroller = axis.isVertical
-        scrollView.hasHorizontalScroller = axis.isHorizontal
-        scrollView.verticalScrollElasticity = axis.isVertical ? .automatic : .none
+        scrollView.hasHorizontalScroller = hasIndicators ? axis.isHorizontal : false
+        scrollView.hasVerticalScroller = hasIndicators ? axis.isVertical : false
         scrollView.horizontalScrollElasticity = axis.isHorizontal ? .automatic : .none
+        scrollView.verticalScrollElasticity = axis.isVertical ? .automatic : .none
         scrollView.usesPredominantAxisScrolling = false
         #endif
         
-        let zoomedContentSize: CGSize = contentSize * zoomScale
+        #if os(iOS)
+        let contentSize: CGSize = contentSize * zoomScale
+        #endif
         let contentOffset: CGPoint = scrollOffset - CGPoint(x: dynmaicPadding.left, y: dynmaicPadding.top)
         
         let couldNotScroll: Bool = scrollView.contentSize.width < containerSize.width && scrollView.contentSize.height < containerSize.height
-        let canNotScroll: Bool = zoomedContentSize.width < containerSize.width && zoomedContentSize.height < containerSize.height
+        let canNotScroll: Bool = contentSize.width < containerSize.width && contentSize.height < containerSize.height
         func roundSize(_ size: CGSize) -> CGSize {
             CGSize(width: round(size.width), height: round(size.height))
         }
-        let sizeIsNew: Bool = roundSize(scrollView.contentSize) != roundSize(zoomedContentSize)
+        let sizeIsNew: Bool = roundSize(scrollView.contentSize) != roundSize(contentSize)
         #if os(iOS)
         let offsetIsNew: Bool = !compare(scrollView.contentOffset, rhs: contentOffset)
         if offsetIsNew {
             scrollView.setContentOffset(contentOffset, animated: false)
         }
         if sizeIsNew {
-            scrollView.contentSize = zoomedContentSize
+            scrollView.contentSize = contentSize
         }
         if !couldNotScroll && canNotScroll {
             RunLoop.current.add(Timer(timeInterval: 0.1, repeats: false, block: { _ in
@@ -272,7 +274,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
             scrollView.contentView.setBoundsOrigin(contentOffset)
         }
         if sizeIsNew {
-            scrollView.documentView?.setFrameSize(zoomedContentSize)
+            scrollView.documentView?.setFrameSize(contentSize)
         }
         if !couldNotScroll && canNotScroll {
             scrollView.contentView.setBoundsOrigin(.zero)
