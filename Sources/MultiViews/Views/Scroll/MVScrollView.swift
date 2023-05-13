@@ -56,7 +56,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         contentSize.height < containerSize.height ? (containerSize.height - contentSize.height) / 2 : 0.0
     }
     private var centeredPaddig: MPEdgeInsets {
-        UIEdgeInsets(top: verticalPadding + padding.top,
+        MPEdgeInsets(top: verticalPadding + padding.top,
                      left: horizontalPadding + padding.left,
                      bottom: verticalPadding + padding.bottom,
                      right: horizontalPadding + padding.right)
