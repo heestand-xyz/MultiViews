@@ -13,7 +13,7 @@ import SwiftUI
 @available(iOS 16.0, *)
 struct TooltipView: UIViewRepresentable {
     
-    let actions: [Tooltip.Action]
+    let items: [Tooltip.Item]
     
     let location: CGPoint
     
@@ -33,28 +33,37 @@ struct TooltipView: UIViewRepresentable {
     func updateUIView(_ uiView: UIViewType, context: Context) {}
     
     func makeCoordinator() -> Coordinator {
-        Coordinator(actions: actions, dismissed: dismissed)
+        Coordinator(items: items, dismissed: dismissed)
     }
     
     class Coordinator: NSObject, UIEditMenuInteractionDelegate {
         
-        let actions: [Tooltip.Action]
+        let items: [Tooltip.Item]
         let dismissed: () -> ()
         
-        init(actions: [Tooltip.Action], dismissed: @escaping () -> ()) {
-            self.actions = actions
+        init(items: [Tooltip.Item], dismissed: @escaping () -> ()) {
+            self.items = items
             self.dismissed = dismissed
         }
         
         func editMenuInteraction(_ interaction: UIEditMenuInteraction, menuFor configuration: UIEditMenuConfiguration, suggestedActions: [UIMenuElement]) -> UIMenu? {
-            var elements: [UIMenuElement] = []
-            for action in actions {
-                let element = UIAction(title: action.title, attributes: action.isDestructive ? .destructive : []) { _ in
-                    action.callback()
+            func elements(items: [Tooltip.Item]) -> [UIMenuElement] {
+                var uiElements: [UIMenuElement] = []
+                for item in items {
+                    switch item {
+                    case .action(let action):
+                        let uiAction = UIAction(title: action.title, attributes: action.isDestructive ? .destructive : []) { _ in
+                            action.callback()
+                        }
+                        uiElements.append(uiAction)
+                    case .menu(let title, let items):
+                        let uiMenu = UIMenu(title: title, children: elements(items: items))
+                        uiElements.append(uiMenu)
+                    }
                 }
-                elements.append(element)
+                return uiElements
             }
-            return UIMenu(children: elements)
+            return UIMenu(children: elements(items: items))
         }
         
         func editMenuInteraction(_ interaction: UIEditMenuInteraction, willDismissMenuFor configuration: UIEditMenuConfiguration, animator: UIEditMenuInteractionAnimating) {

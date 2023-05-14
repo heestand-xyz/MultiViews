@@ -12,6 +12,11 @@ import SwiftUI
 @available(iOS 16.0, *)
 public struct Tooltip: View {
     
+    public enum Item {
+        case action(Action)
+        case menu(title: String, items: [Item])
+    }
+    
     public struct Action: Identifiable {
         public var id: String { title }
         let title: String
@@ -24,20 +29,20 @@ public struct Tooltip: View {
         }
     }
     
-    let actions: [Action]
+    let items: [Item]
     
     let location: CGPoint
     
     let dismissed: () -> ()
     
-    public init(actions: [Action], location: CGPoint, dismissed: @escaping () -> ()) {
-        self.actions = actions
+    public init(items: [Item], location: CGPoint, dismissed: @escaping () -> ()) {
+        self.items = items
         self.location = location
         self.dismissed = dismissed
     }
     
     public var body: some View {
-        TooltipView(actions: actions, location: location, dismissed: dismissed)
+        TooltipView(items: items, location: location, dismissed: dismissed)
     }
 }
 
@@ -49,7 +54,7 @@ struct Tooltip_Previews: PreviewProvider {
                 Color.clear
                 Circle()
                     .frame(width: 30, height: 30)
-                Tooltip(actions: [Tooltip.Action(title: "Mock", callback: { })],
+                Tooltip(items: [.action(Tooltip.Action(title: "Mock", callback: { }))],
                         location: CGPoint(x: geo.size.width / 2,
                                           y: geo.size.height / 2),
                         dismissed: {})
