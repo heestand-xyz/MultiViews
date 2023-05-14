@@ -220,6 +220,13 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         
         let scrollView: MPScrollView = view as! MPScrollView
         
+        if context.coordinator.containerSize != containerSize
+            || context.coordinator.contentSize != contentSize {
+            setPadding(to: scrollView, with: context)
+        }
+        context.coordinator.containerSize = containerSize
+        context.coordinator.contentSize = contentSize
+        
         // Page Size
         
         if context.coordinator.pageWidth != pageWidth {
@@ -330,8 +337,8 @@ public class MPScrollViewCoordinator: NSObject {
     
     var padding: MPEdgeInsets
     
-    let containerSize: CGSize
-    let contentSize: CGSize
+    var containerSize: CGSize
+    var contentSize: CGSize
     
     var scrollView: MPScrollView!
     #if os(iOS)
