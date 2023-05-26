@@ -11,7 +11,7 @@ public struct FillView<Content: View>: View {
     
     let content: () -> Content
     
-    public init(content: @escaping () -> Content) {
+    public init(@ViewBuilder content: @escaping () -> Content) {
         
         self.content = content
     }

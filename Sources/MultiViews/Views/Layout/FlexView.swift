@@ -14,7 +14,7 @@ public struct FlexView<Content: View>: View {
     let content: () -> Content
     
     public init(contentMode: ContentMode,
-                content: @escaping () -> Content) {
+                @ViewBuilder content: @escaping () -> Content) {
         
         self.contentMode = contentMode
         
