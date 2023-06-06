@@ -41,8 +41,16 @@ public struct FrameReader: View {
 
 extension View {
     
+    public func read(frame: Binding<CGRect>, in coordinateSpace: CoordinateSpace) -> some View {
+        read(frame: Binding<CGRect?>(get: {
+            frame.wrappedValue
+        }, set: { newFrame in
+            frame.wrappedValue = newFrame ?? .one
+        }), in: coordinateSpace, clear: false)
+    }
+    
     public func read(frame: Binding<CGRect?>, in coordinateSpace: CoordinateSpace, clear: Bool = false) -> some View {
-        self.background(FrameReader(frame: frame, in: coordinateSpace, clear: clear))
+        background(FrameReader(frame: frame, in: coordinateSpace, clear: clear))
     }
     
     public func frame(_ frame: CGRect?) -> some View {

@@ -32,6 +32,14 @@ public struct OriginReader: View {
 
 extension View {
     
+    public func read(origin: Binding<CGPoint>, in coordinateSpace: CoordinateSpace) -> some View {
+        read(origin: Binding<CGPoint?>(get: {
+            origin.wrappedValue
+        }, set: { newOrigin in
+            origin.wrappedValue = newOrigin ?? .zero
+        }), in: coordinateSpace)
+    }
+    
     public func read(origin: Binding<CGPoint?>, in coordinateSpace: CoordinateSpace) -> some View {
         self.background(OriginReader(origin: origin, in: coordinateSpace))
     }

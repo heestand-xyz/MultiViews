@@ -30,12 +30,20 @@ public struct SizeReader: View {
 
 extension View {
     
+    public func read(size: Binding<CGSize>) -> some View {
+        read(size: Binding<CGSize?>(get: {
+            size.wrappedValue
+        }, set: { newSize in
+            size.wrappedValue = newSize ?? .one
+        }))
+    }
+    
     public func read(size: Binding<CGSize?>) -> some View {
-        self.background(SizeReader(size: size))
+        background(SizeReader(size: size))
     }
     
     public func frame(size: CGSize?) -> some View {
-        self.frame(width: size?.width ?? 0.0,
-                   height: size?.height ?? 0.0)
+        frame(width: size?.width ?? 0.0,
+              height: size?.height ?? 0.0)
     }
 }
