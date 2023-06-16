@@ -45,7 +45,7 @@ extension View {
         read(frame: Binding<CGRect?>(get: {
             frame.wrappedValue
         }, set: { newFrame in
-            frame.wrappedValue = newFrame ?? .one
+            frame.wrappedValue = newFrame ?? CGRect(origin: .zero, size: CGSize(width: 1.0, height: 1.0))
         }), in: coordinateSpace, clear: false)
     }
     
