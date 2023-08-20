@@ -10,8 +10,10 @@ public extension CGFloat {
     static var onePixel: CGFloat {
         #if os(macOS)
         return 1.0 / 2.0
-        #else
+        #elseif os(iOS) || os(tvOS)
         return 1.0 / UIScreen.main.scale
+        #elseif os(xrOS)
+        return 1.0
         #endif
     }
 

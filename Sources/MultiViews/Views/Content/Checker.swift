@@ -2,9 +2,9 @@
 //  Created by Anton Heestand on 2022-10-04.
 //
 
-#if os(iOS) || os(tvOS)
+#if canImport(UIKit)
 import UIKit
-#elseif os(macOS)
+#elseif canImport(AppKit)
 import AppKit
 #endif
 #if canImport(SwiftUI)
@@ -26,7 +26,7 @@ public class CheckerView: MPView {
     
     public override var frame: CGRect {
         didSet {
-#if os(iOS) || os(tvOS)
+#if os(iOS) || os(tvOS) || os(xrOS)
             setNeedsDisplay()
 #elseif os(macOS)
             setNeedsDisplay(frame)
@@ -38,7 +38,7 @@ public class CheckerView: MPView {
         
         super.init(frame: frame)
         
-#if os(iOS) || os(tvOS)
+#if os(iOS) || os(tvOS) || os(xrOS)
         isUserInteractionEnabled = false
 #endif
         
@@ -48,7 +48,7 @@ public class CheckerView: MPView {
         let scale: CGFloat = 20
         let dark: CGFloat = 1 / 3
         let light: CGFloat = 2 / 3
-#if os(iOS) || os(tvOS)
+#if os(iOS) || os(tvOS) || os(xrOS)
         let darkColor = UIColor(white: dark, alpha: 1.0).cgColor
         let lightColor = UIColor(white: light, alpha: 1.0).cgColor
         return UIGraphicsImageRenderer(size: CGSize(width: scale * 2, height: scale * 2)).image { ctx in
@@ -80,10 +80,10 @@ public class CheckerView: MPView {
     
     public override func draw(_ rect: CGRect) {
         
-#if os(iOS) || os(tvOS)
-        guard let context = UIGraphicsGetCurrentContext() else { return }
-#elseif os(macOS)
+#if os(macOS)
         guard let context = NSGraphicsContext.current?.cgContext else { return }
+#else
+        guard let context = UIGraphicsGetCurrentContext() else { return }
 #endif
         
         context.saveGState();
@@ -93,10 +93,10 @@ public class CheckerView: MPView {
         
         let checker = checkerImage()
         
-#if os(iOS) || os(tvOS)
-        let color = UIColor(patternImage: checker).cgColor
-#elseif os(macOS)
+#if os(macOS)
         let color = NSColor(patternImage: checker).cgColor
+#else
+        let color = UIColor(patternImage: checker).cgColor
 #endif
         context.setFillColor(color)
         

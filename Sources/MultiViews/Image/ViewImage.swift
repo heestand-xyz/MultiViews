@@ -29,7 +29,7 @@ public extension UIView {
             backgroundColor = .clear
         }
 
-        UIGraphicsBeginImageContextWithOptions(bounds.size, false, UIScreen.main.scale)
+        UIGraphicsBeginImageContextWithOptions(bounds.size, false, .pixelsPerPoint)
         drawHierarchy(in: bounds, afterScreenUpdates: true)
         guard let image: UIImage = UIGraphicsGetImageFromCurrentImageContext() else { return nil }
         UIGraphicsEndImageContext()

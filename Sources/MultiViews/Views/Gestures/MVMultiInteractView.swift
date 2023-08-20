@@ -2,9 +2,9 @@
 //  Created by Heestand XYZ on 2020-12-07.
 //
 
-#if os(iOS)
+#if canImport(UIKit)
 import UIKit
-#elseif os(macOS)
+#elseif canImport(AppKit)
 import AppKit
 #endif
 import SwiftUI
