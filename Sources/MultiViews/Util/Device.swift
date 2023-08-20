@@ -29,11 +29,3 @@ public let mac: Bool = {
     return false
     #endif
 }()
-
-public let visionPro: Bool = {
-    #if os(xrOS)
-    return true
-    #else
-    return false
-    #endif
-}()

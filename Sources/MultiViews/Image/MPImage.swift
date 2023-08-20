@@ -57,9 +57,7 @@ public extension NSImage {
         return cgImage(forProposedRect: &frame, context: nil, hints: nil)
     }
 }
-#endif
-
-#if os(iOS)
+#else
 public extension UIImage {
     convenience init(cgImage: CGImage, size: CGSize) {
         self.init(cgImage: cgImage)

@@ -134,7 +134,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         scrollView = UIScrollView()
         #endif
         
-        #if os(iOS)
+        #if os(iOS) || os(xrOS)
         scrollView.minimumZoomScale = minZoom
         scrollView.maximumZoomScale = maxZoom
         #elseif os(macOS)
@@ -154,7 +154,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         scrollView.addSubview(view)
         context.coordinator.contentView = view
         #endif
-        #if os(iOS)
+        #if os(iOS) || os(xrOS)
         view.translatesAutoresizingMaskIntoConstraints = false
         view.topAnchor.constraint(equalTo: scrollView.topAnchor).isActive = true
         view.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor).isActive = true
@@ -162,7 +162,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         view.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor).isActive = true
         #endif
         
-        #if os(iOS)
+        #if os(iOS) || os(xrOS)
         scrollView.delegate = context.coordinator
         #endif
 
@@ -173,7 +173,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         context.coordinator.scrollView = scrollView
         context.coordinator.setup()
         
-        #if os(iOS)
+        #if os(iOS) || os(xrOS)
         context.coordinator.didStartScroll = {
             scrollActive = true
         }
@@ -238,7 +238,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         
         // Scroll
         
-        #if os(iOS)
+        #if os(iOS) || os(xrOS)
         scrollView.showsHorizontalScrollIndicator = hasIndicators ? axis.isHorizontal : false
         scrollView.showsVerticalScrollIndicator = hasIndicators ? axis.isVertical : false
         scrollView.alwaysBounceHorizontal = axis.isHorizontal
@@ -251,7 +251,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         scrollView.usesPredominantAxisScrolling = false
         #endif
         
-        #if os(iOS)
+        #if os(iOS) || os(xrOS)
         let contentSize: CGSize = contentSize * zoomScale
         #endif
         let contentOffset: CGPoint = scrollOffset - CGPoint(x: dynmaicPadding.left, y: dynmaicPadding.top)
@@ -262,7 +262,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
             CGSize(width: round(size.width), height: round(size.height))
         }
         let sizeIsNew: Bool = roundSize(scrollView.contentSize) != roundSize(contentSize)
-        #if os(iOS)
+        #if os(iOS) || os(xrOS)
         let offsetIsNew: Bool = !compare(scrollView.contentOffset, rhs: contentOffset)
         if offsetIsNew {
             scrollView.setContentOffset(contentOffset, animated: false)
@@ -289,7 +289,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         #endif
         
         if context.coordinator.willScroll != canScroll {
-            #if os(iOS)
+            #if os(iOS) || os(xrOS)
 //            scrollView.isScrollEnabled = canScroll
             #elseif os(macOS)
             // Not implemented
@@ -298,7 +298,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         }
         
         if canZoom {
-            #if os(iOS)
+            #if os(iOS) || os(xrOS)
             if zoomScale != scrollView.zoomScale {
                 scrollView.zoomScale = zoomScale
             }
@@ -316,7 +316,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     
     private func setPadding(to scrollView: MPScrollView, with context: Context) {
         context.coordinator.padding = dynmaicPadding
-        #if os(iOS)
+        #if os(iOS) || os(xrOS)
         scrollView.contentInset = dynmaicPadding
         #elseif os(macOS)
         scrollView.automaticallyAdjustsContentInsets = false
@@ -341,7 +341,7 @@ public class MPScrollViewCoordinator: NSObject {
     var contentSize: CGSize
     
     var scrollView: MPScrollView!
-    #if os(iOS)
+    #if os(iOS) || os(xrOS)
     var contentView: UIView!
     #endif
     

@@ -2,9 +2,9 @@
 //  Created by Heestand XYZ on 2020-12-07.
 //
 
-#if os(iOS)
+#if canImport(UIKit)
 import UIKit
-#elseif os(macOS)
+#elseif canImport(AppKit)
 import AppKit
 #endif
 import SwiftUI
@@ -57,7 +57,7 @@ class MainInteractView: MPView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    #if os(iOS)
+    #if os(iOS) || os(xrOS)
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         interacted(.started)
         let location: CGPoint = touches.first!.location(in: self)
