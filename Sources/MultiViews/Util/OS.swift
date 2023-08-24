@@ -38,7 +38,7 @@ public var macOS: Bool {
     #endif
 }
 public var visionOS: Bool {
-    #if os(xrOS)
+    #if os(visionOS)
     return true
     #else
     return false
