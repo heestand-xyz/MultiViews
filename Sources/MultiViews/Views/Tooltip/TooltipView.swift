@@ -24,7 +24,7 @@ struct TooltipView: UIViewRepresentable {
         let menuInteraction = UIEditMenuInteraction(delegate: context.coordinator)
         view.addInteraction(menuInteraction)
         let config = UIEditMenuConfiguration(identifier: nil, sourcePoint: location)
-        DispatchQueue.main.async {
+        DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100)) {
             menuInteraction.presentEditMenu(with: config)
         }
         return view
