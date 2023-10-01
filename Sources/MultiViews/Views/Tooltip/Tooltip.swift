@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-#if os(iOS)
+#if os(iOS) || os(visionOS)
 
 @available(iOS 16.0, *)
 public struct Tooltip: View {

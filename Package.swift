@@ -1,4 +1,4 @@
-// swift-tools-version:5.3
+// swift-tools-version: 5.9
 
 import PackageDescription
 
@@ -7,7 +7,8 @@ let package = Package(
     platforms: [
         .iOS(.v14),
         .tvOS(.v14),
-        .macOS(.v11)
+        .macOS(.v11),
+        .visionOS(.v1)
     ],
     products: [
         .library(name: "MultiViews", targets: ["MultiViews"]),

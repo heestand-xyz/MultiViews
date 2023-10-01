@@ -2,9 +2,9 @@
 //  Created by Heestand XYZ on 2020-12-07.
 //
 
-#if os(iOS)
+#if canImport(UIKit)
 import UIKit
-#elseif os(macOS)
+#elseif canImport(AppKit)
 import AppKit
 #endif
 import SwiftUI
@@ -42,7 +42,7 @@ class MainMultiInteractView: MPView {
     let interacted: ([MVMultiInteraction]) -> ()
     let interacting: (([MVMultiInteracting]) -> ())?
    
-    #if os(iOS)
+    #if os(iOS) || os(visionOS)
     var touchIDs: [UUID: UITouch] = [:]
     #elseif os(macOS)
     var clickID: UUID?
@@ -62,7 +62,7 @@ class MainMultiInteractView: MPView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    #if os(iOS)
+    #if os(iOS) || os(visionOS)
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         let interactions: [MVMultiInteraction] = touches.map { touch in
             let id = UUID()

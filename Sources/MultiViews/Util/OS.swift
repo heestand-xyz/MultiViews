@@ -37,6 +37,13 @@ public var macOS: Bool {
     return false
     #endif
 }
+public var visionOS: Bool {
+    #if os(visionOS)
+    return true
+    #else
+    return false
+    #endif
+}
 
 public var iOS15: Bool {
     if #available(iOS 15.0, *) {
