@@ -57,7 +57,7 @@ class MainInteractView: MPView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    #if os(iOS) || os(xrOS)
+    #if os(iOS) || os(visionOS)
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         interacted(.started)
         let location: CGPoint = touches.first!.location(in: self)

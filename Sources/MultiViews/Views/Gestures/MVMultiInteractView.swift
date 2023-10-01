@@ -42,7 +42,7 @@ class MainMultiInteractView: MPView {
     let interacted: ([MVMultiInteraction]) -> ()
     let interacting: (([MVMultiInteracting]) -> ())?
    
-    #if os(iOS) || os(xrOS)
+    #if os(iOS) || os(visionOS)
     var touchIDs: [UUID: UITouch] = [:]
     #elseif os(macOS)
     var clickID: UUID?
@@ -62,7 +62,7 @@ class MainMultiInteractView: MPView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    #if os(iOS) || os(xrOS)
+    #if os(iOS) || os(visionOS)
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         let interactions: [MVMultiInteraction] = touches.map { touch in
             let id = UUID()

@@ -1,4 +1,4 @@
-#if os(iOS) || os(xrOS)
+#if os(iOS) || os(visionOS)
 
 import SwiftUI
 

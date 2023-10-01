@@ -12,7 +12,7 @@ public extension CGFloat {
         return 1.0 / 2.0
         #elseif os(iOS) || os(tvOS)
         return 1.0 / UIScreen.main.scale
-        #elseif os(xrOS)
+        #elseif os(visionOS)
         return 1.0
         #endif
     }

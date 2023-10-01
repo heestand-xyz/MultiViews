@@ -26,7 +26,7 @@ public class CheckerView: MPView {
     
     public override var frame: CGRect {
         didSet {
-#if os(iOS) || os(tvOS) || os(xrOS)
+#if os(iOS) || os(tvOS) || os(visionOS)
             setNeedsDisplay()
 #elseif os(macOS)
             setNeedsDisplay(frame)
@@ -38,7 +38,7 @@ public class CheckerView: MPView {
         
         super.init(frame: frame)
         
-#if os(iOS) || os(tvOS) || os(xrOS)
+#if os(iOS) || os(tvOS) || os(visionOS)
         isUserInteractionEnabled = false
 #endif
         
@@ -48,7 +48,7 @@ public class CheckerView: MPView {
         let scale: CGFloat = 20
         let dark: CGFloat = 1 / 3
         let light: CGFloat = 2 / 3
-#if os(iOS) || os(tvOS) || os(xrOS)
+#if os(iOS) || os(tvOS) || os(visionOS)
         let darkColor = UIColor(white: dark, alpha: 1.0).cgColor
         let lightColor = UIColor(white: light, alpha: 1.0).cgColor
         return UIGraphicsImageRenderer(size: CGSize(width: scale * 2, height: scale * 2)).image { ctx in
