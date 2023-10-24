@@ -25,6 +25,16 @@ public let iPad: Bool = {
 public let mac: Bool = {
     #if os(macOS)
     return true
+    #elseif targetEnvironment(macCatalyst)
+    return UIDevice.current.userInterfaceIdiom == .mac
+    #else
+    return false
+    #endif
+}()
+
+public let vision: Bool = {
+    #if os(visionOS)
+    return UIDevice.current.userInterfaceIdiom == .vision
     #else
     return false
     #endif
