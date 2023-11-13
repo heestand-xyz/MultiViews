@@ -2,7 +2,7 @@
 //  Created by Anton Heestand on 2021-02-09.
 //
 
-#if os(iOS)
+#if !os(macOS)
 import UIKit
 #endif
 
