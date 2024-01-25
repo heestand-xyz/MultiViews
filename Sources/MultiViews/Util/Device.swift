@@ -14,6 +14,14 @@ public let iPhone: Bool = {
     #endif
 }()
 
+public let iPhoneSE: Bool = {
+    #if os(iOS)
+    return iPhone && UIScreen.main.bounds.width == 375
+    #else
+    return false
+    #endif
+}()
+
 public let iPad: Bool = {
     #if os(iOS)
     return UIDevice.current.userInterfaceIdiom == .pad
