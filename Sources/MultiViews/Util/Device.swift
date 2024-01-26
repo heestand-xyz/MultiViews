@@ -2,6 +2,7 @@
 //  Created by Anton Heestand on 2021-02-09.
 //
 
+import CoreGraphics
 #if !os(macOS)
 import UIKit
 #endif
@@ -16,7 +17,15 @@ public let iPhone: Bool = {
 
 public let iPhoneSE: Bool = {
     #if os(iOS)
-    return iPhone && UIScreen.main.bounds.width == 375
+    return iPhone && UIScreen.main.bounds.size == CGSize(width: 375, height: 667)
+    #else
+    return false
+    #endif
+}()
+
+public let iPhoneMini: Bool = {
+    #if os(iOS)
+    return iPhone && UIScreen.main.bounds.width <= 375
     #else
     return false
     #endif
