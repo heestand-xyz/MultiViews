@@ -12,7 +12,9 @@ public struct BindableScrollView<Content: View>: View {
     
     @Binding var offset: CGFloat
     let isActive: Bool
-    let isMoving: Bool
+    let isMoving: Bool?
+    let isAnimated: Bool
+    let animationDuration: TimeInterval
 
     let axis: Axis
     let showsIndicators: Bool
@@ -21,16 +23,22 @@ public struct BindableScrollView<Content: View>: View {
     public init(axis: Axis = .vertical,
                 showsIndicators: Bool = true,
                 isActive: Bool = true,
-                isMoving: Bool,
+                isMoving: Bool? = nil,
+                isAnimated: Bool = false,
+                animationDuration: TimeInterval = 0.5,
                 offset: Binding<CGFloat>,
                 @ViewBuilder content: @escaping () -> Content) {
         self.axis = axis
         self.showsIndicators = showsIndicators
         self.isActive = isActive
         self.isMoving = isMoving
+        self.isAnimated = isAnimated
+        self.animationDuration = animationDuration
         _offset = offset
         self.content = content
     }
+    
+    @State private var isAnimating: Bool = false
     
     @State private var containerSize: CGSize?
     @State private var contentFrame: CGRect?
@@ -92,18 +100,18 @@ public struct BindableScrollView<Content: View>: View {
             }
             .scrollDisabled(!isActive)
             .onChange(of: offset) { offset in
-                guard isMoving else { return }
+                guard isMoving != false else { return }
                 guard offset != contentOrigin else { return }
-                scroll(to: offset, with: scrollViewProxy)
+                scroll(to: offset, with: scrollViewProxy, animated: isAnimated)
             }
             .onChange(of: contentOrigin) { contentOrigin in
-                guard !isMoving else { return }
+                guard isMoving != true else { return }
                 guard contentOrigin != offset else { return }
                 offset = contentOrigin
             }
             .onAppear {
                 DispatchQueue.main.async {
-                    scroll(to: offset, with: scrollViewProxy)
+                    scroll(to: offset, with: scrollViewProxy, animated: false)
                 }
             }
         }
@@ -111,12 +119,22 @@ public struct BindableScrollView<Content: View>: View {
         .coordinateSpace(name: spaceIdentifier)
     }
     
-    private func scroll(to offset: CGFloat, with scrollViewProxy: ScrollViewProxy) {
+    private func scroll(to offset: CGFloat, with scrollViewProxy: ScrollViewProxy, animated: Bool) {
         guard containerLength > 0.0
         else { return }
         let fraction = offset / containerLength
         let anchor = UnitPoint(x: axis == .horizontal ? fraction : 0.0,
                                y: axis == .vertical ? fraction : 0.0)
-        scrollViewProxy.scrollTo(contentIdentifier, anchor: anchor)
+        if animated {
+            isAnimating = true
+            withAnimation(.easeInOut(duration: animationDuration)) {
+                scrollViewProxy.scrollTo(contentIdentifier, anchor: anchor)
+            }
+            Timer.scheduledTimer(withTimeInterval: animationDuration, repeats: false) { _ in
+                isAnimating = false
+            }
+        } else {
+            scrollViewProxy.scrollTo(contentIdentifier, anchor: anchor)
+        }
     }
 }
