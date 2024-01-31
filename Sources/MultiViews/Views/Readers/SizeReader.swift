@@ -30,6 +30,7 @@ public struct SizeReader: View {
 
 extension View {
     
+    @available(*, deprecated, message: "Please use `readGeometry` in CoreGraphicsExtensions")
     public func read(size: Binding<CGSize>) -> some View {
         read(size: Binding<CGSize?>(get: {
             size.wrappedValue
@@ -38,10 +39,11 @@ extension View {
         }))
     }
     
+    @available(*, deprecated, message: "Please use `readGeometry` in CoreGraphicsExtensions")
     public func read(size: Binding<CGSize?>) -> some View {
         background(SizeReader(size: size))
     }
-    
+    @available(*, deprecated)
     public func frame(size: CGSize?) -> some View {
         frame(width: size?.width ?? 0.0,
               height: size?.height ?? 0.0)

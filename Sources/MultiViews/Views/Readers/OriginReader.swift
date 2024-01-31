@@ -32,6 +32,7 @@ public struct OriginReader: View {
 
 extension View {
     
+    @available(*, deprecated, message: "Please use `readGeometry` in CoreGraphicsExtensions")
     public func read(origin: Binding<CGPoint>, in coordinateSpace: CoordinateSpace) -> some View {
         read(origin: Binding<CGPoint?>(get: {
             origin.wrappedValue
@@ -40,6 +41,7 @@ extension View {
         }), in: coordinateSpace)
     }
     
+    @available(*, deprecated, message: "Please use `readGeometry` in CoreGraphicsExtensions")
     public func read(origin: Binding<CGPoint?>, in coordinateSpace: CoordinateSpace) -> some View {
         self.background(OriginReader(origin: origin, in: coordinateSpace))
     }

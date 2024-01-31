@@ -41,6 +41,7 @@ public struct FrameReader: View {
 
 extension View {
     
+    @available(*, deprecated, message: "Please use `readGeometry` in CoreGraphicsExtensions")
     public func read(frame: Binding<CGRect>, in coordinateSpace: CoordinateSpace) -> some View {
         read(frame: Binding<CGRect?>(get: {
             frame.wrappedValue
@@ -49,10 +50,12 @@ extension View {
         }), in: coordinateSpace, clear: false)
     }
     
+    @available(*, deprecated, message: "Please use `readGeometry` in CoreGraphicsExtensions")
     public func read(frame: Binding<CGRect?>, in coordinateSpace: CoordinateSpace, clear: Bool = false) -> some View {
         background(FrameReader(frame: frame, in: coordinateSpace, clear: clear))
     }
     
+    @available(*, deprecated)
     public func frame(_ frame: CGRect?) -> some View {
         self.frame(width: frame?.width ?? 0.0,
                    height: frame?.height ?? 0.0)
