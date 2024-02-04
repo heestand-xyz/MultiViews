@@ -49,7 +49,7 @@ public let mac: Bool = {
     #endif
 }()
 
-public let vision: Bool = {
+public let visionPro: Bool = {
     #if os(visionOS)
     return UIDevice.current.userInterfaceIdiom == .vision
     #else
