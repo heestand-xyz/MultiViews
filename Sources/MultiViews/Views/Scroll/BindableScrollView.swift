@@ -14,7 +14,7 @@ public struct BindableScrollView<Content: View>: View {
     let isActive: Bool
     let isMoving: Bool?
     let isAnimated: Bool
-    let animationDuration: TimeInterval
+    let animationDuration: TimeInterval?
 
     let axis: Axis
     let showsIndicators: Bool
@@ -25,7 +25,7 @@ public struct BindableScrollView<Content: View>: View {
                 isActive: Bool = true,
                 isMoving: Bool? = nil,
                 isAnimated: Bool = false,
-                animationDuration: TimeInterval = 0.5,
+                animationDuration: TimeInterval? = nil,
                 offset: Binding<CGFloat>,
                 @ViewBuilder content: @escaping () -> Content) {
         self.axis = axis
@@ -127,11 +127,23 @@ public struct BindableScrollView<Content: View>: View {
                                y: axis == .vertical ? fraction : 0.0)
         if animated {
             isAnimating = true
-            withAnimation(.easeInOut(duration: animationDuration)) {
-                scrollViewProxy.scrollTo(contentIdentifier, anchor: anchor)
-            }
-            Timer.scheduledTimer(withTimeInterval: animationDuration, repeats: false) { _ in
-                isAnimating = false
+            if let animationDuration {
+                withAnimation(.easeInOut(duration: animationDuration)) {
+                    scrollViewProxy.scrollTo(contentIdentifier, anchor: anchor)
+                }
+                Timer.scheduledTimer(withTimeInterval: animationDuration, repeats: false) { _ in
+                    isAnimating = false
+                }
+            } else {
+                if #available(iOS 17.0, macOS 14.0, visionOS 1.0, *) {
+                    withAnimation(.easeInOut) {
+                        scrollViewProxy.scrollTo(contentIdentifier, anchor: anchor)
+                    } completion: {
+                        isAnimating = false
+                    }
+                } else {
+                    assertionFailure("Unsupported animation duration.")
+                }
             }
         } else {
             scrollViewProxy.scrollTo(contentIdentifier, anchor: anchor)
