@@ -48,6 +48,8 @@ class MainMultiInteractView: MPView {
     var clickID: UUID?
     #endif
     
+    var isInsides: [UUID: Bool] = [:]
+    
     init(interacted: @escaping ([MVMultiInteraction]) -> (),
          interacting: (([MVMultiInteracting]) -> ())?) {
         self.interacted = interacted
@@ -75,6 +77,9 @@ class MainMultiInteractView: MPView {
             MVMultiInteracting(id: interaction.id, location: interaction.location)
         })
         interacting?(interactings)
+        for interaction in interactions {
+            isInsides[interaction.id] = true
+        }
     }
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         let interactings: [MVMultiInteracting] = touches.compactMap { touch in
@@ -82,15 +87,24 @@ class MainMultiInteractView: MPView {
             let location: CGPoint = touch.location(in: self)
             return MVMultiInteracting(id: id, location: location)
         }
+        let interactions: [MVMultiInteraction] = interactings.compactMap { interacting in
+            let wasInside: Bool = isInsides[interacting.id] ?? false
+            let isInside: Bool = bounds.contains(interacting.location)
+            if wasInside == isInside { return nil }
+            return MVMultiInteraction(id: interacting.id, interaction: isInside ? .entered : .exited, location: interacting.location)
+        }
+        if !interactions.isEmpty {
+            interacted(interactions)
+        }
         interacting?(interactings)
     }
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         let interactions: [MVMultiInteraction] = touches.compactMap { touch in
             guard let id: UUID = touchIDs.first(where: { $0.value == touch })?.key else { return nil }
             let location: CGPoint = touch.location(in: self)
-            let inside: Bool = bounds.contains(location)
+            let isInside: Bool = isInsides[id] ?? false
             touchIDs.removeValue(forKey: id)
-            return MVMultiInteraction(id: id, interaction: inside ? .endedInside : .endedOutside, location: location)
+            return MVMultiInteraction(id: id, interaction: isInside ? .endedInside : .endedOutside, location: location)
         }
         interacted(interactions)
     }
@@ -107,22 +121,29 @@ class MainMultiInteractView: MPView {
     
     #if os(macOS)
     override func mouseDown(with event: NSEvent) {
-        clickID = UUID()
+        let id = UUID()
+        clickID = id
         guard let location: CGPoint = getMouseLocation(event: event) else { return }
-        interacted([MVMultiInteraction(id: clickID!, interaction: .started, location: location)])
-        interacting?([MVMultiInteracting(id: clickID!, location: location)])
+        interacted([MVMultiInteraction(id: id, interaction: .started, location: location)])
+        interacting?([MVMultiInteracting(id: id, location: location)])
+        isInsides[id] = true
     }
     override func mouseDragged(with event: NSEvent) {
         guard let id: UUID = clickID else { return }
         guard let location: CGPoint = getMouseLocation(event: event) else { return }
+        let isInside: Bool = bounds.contains(location)
+        if self.isInsides[id] != isInside {
+            interacted([MVMultiInteraction(id: id, interaction: isInside ? .entered : .exited, location: location)])
+            self.isInsides[id] = isInside
+        }
         interacting?([MVMultiInteracting(id: id, location: location)])
     }
     override func mouseUp(with event: NSEvent) {
         defer { clickID = nil }
         guard let id: UUID = clickID else { return }
         guard let location: CGPoint = getMouseLocation(event: event) else { return }
-        let inside: Bool = bounds.contains(location)
-        interacted([MVMultiInteraction(id: id, interaction: inside ? .endedInside : .endedOutside, location: location)])
+        interacted([MVMultiInteraction(id: id, interaction: isInsides[id] == true ? .endedInside : .endedOutside, location: location)])
+        isInsides.removeValue(forKey: id)
     }
     func getMouseLocation(event: NSEvent) -> CGPoint? {
         let mouseLocation: CGPoint = event.locationInWindow

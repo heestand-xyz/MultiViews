@@ -12,9 +12,11 @@ import CoreGraphicsExtensions
 
 public enum MVInteraction {
     case started
+    case entered
+    case exited
     case endedInside
     case endedOutside
-    var ended: Bool { self != .started }
+    var ended: Bool { [.endedInside, .endedOutside].contains(self) }
 }
     
 public struct MVInteractView: ViewRepresentable {
@@ -43,6 +45,8 @@ class MainInteractView: MPView {
     let interacting: ((CGPoint) -> ())?
     let scrolling: ((CGPoint) -> ())?
     
+    private var isInside: Bool?
+    
     init(interacted: @escaping (MVInteraction) -> (),
          interacting: ((CGPoint) -> ())?,
          scrolling: ((CGPoint) -> ())? = nil) {
@@ -62,17 +66,24 @@ class MainInteractView: MPView {
         interacted(.started)
         let location: CGPoint = touches.first!.location(in: self)
         interacting?(location)
+        isInside = true
     }
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         let location: CGPoint = touches.first!.location(in: self)
+        let isInside: Bool = bounds.contains(location)
+        if self.isInside != isInside {
+            interacted(isInside ? .entered : .exited)
+            self.isInside = isInside
+        }
         interacting?(location)
     }
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        let inside: Bool = bounds.contains(touches.first!.location(in: self))
-        interacted(inside ? .endedInside : .endedOutside)
+        interacted(isInside == true ? .endedInside : .endedOutside)
+        isInside = nil
     }
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         interacted(.endedOutside)
+        isInside = nil
     }
     #endif
     
@@ -81,15 +92,21 @@ class MainInteractView: MPView {
         interacted(.started)
         guard let location: CGPoint = getMouseLocation() else { return }
         interacting?(location)
+        isInside = true
     }
     override func mouseDragged(with event: NSEvent) {
         guard let location: CGPoint = getMouseLocation() else { return }
+        let isInside: Bool = bounds.contains(location)
+        if self.isInside != isInside {
+            interacted(isInside ? .entered : .exited)
+            self.isInside = isInside
+        }
         interacting?(location)
     }
     override func mouseUp(with event: NSEvent) {
         guard let location: CGPoint = getMouseLocation() else { return }
-        let inside: Bool = bounds.contains(location)
-        interacted(inside ? .endedInside : .endedOutside)
+        interacted(isInside == true ? .endedInside : .endedOutside)
+        isInside = nil
     }
     override func scrollWheel(with event: NSEvent) {
         scrolling?(CGPoint(x: event.scrollingDeltaX, y: event.scrollingDeltaY))
