@@ -2,7 +2,7 @@
 //  SwiftUIView.swift
 //  
 //
-//  Created by Heestand, Anton Norman | Anton | GSSD on 2024-03-14.
+//  Created by Anton Heestand on 2024-03-14.
 //
 
 import SwiftUI
