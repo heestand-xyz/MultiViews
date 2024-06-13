@@ -13,39 +13,60 @@ import SwiftUI
 
 public struct Checker: ViewRepresentable {
     
-    public init() {}
+    let scale: CGFloat
     
-    public func makeView(context: Context) -> CheckerView {
-        CheckerView(frame: .zero)
+    public init(scale: CGFloat = 20) {
+        self.scale = scale
     }
     
-    public func updateView(_ view: CheckerView, context: Context) {}
+    public func makeView(context: Context) -> CheckerView {
+        CheckerView(frame: .zero, scale: scale)
+    }
+    
+    public func updateView(_ view: CheckerView, context: Context) {
+        view.scale = scale
+    }
 }
 
 public class CheckerView: MPView {
     
     public override var frame: CGRect {
         didSet {
-#if os(iOS) || os(tvOS) || os(visionOS)
-            setNeedsDisplay()
-#elseif os(macOS)
-            setNeedsDisplay(frame)
-#endif
+            render()
         }
     }
     
-    override init(frame: CGRect) {
+    var scale: CGFloat {
+        didSet {
+            guard oldValue != scale else { return }
+            render()
+        }
+    }
+    
+    init(frame: CGRect, scale: CGFloat) {
+    
+        self.scale = scale
         
         super.init(frame: frame)
         
 #if os(iOS) || os(tvOS) || os(visionOS)
         isUserInteractionEnabled = false
 #endif
-        
     }
     
-    func checkerImage() -> MPImage {
-        let scale: CGFloat = 20
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func render() {
+#if os(iOS) || os(tvOS) || os(visionOS)
+            setNeedsDisplay()
+#elseif os(macOS)
+            setNeedsDisplay(frame)
+#endif
+    }
+    
+    private func checkerImage() -> MPImage {
         let dark: CGFloat = 1 / 3
         let light: CGFloat = 2 / 3
 #if os(iOS) || os(tvOS) || os(visionOS)
@@ -106,9 +127,5 @@ public class CheckerView: MPView {
         
         super.draw(rect)
         
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
     }
 }
