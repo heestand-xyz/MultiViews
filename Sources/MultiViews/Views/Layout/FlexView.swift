@@ -24,8 +24,7 @@ public struct FlexView<Content: View>: View {
     @State var size: CGSize?
     
     private var aspectRatio: CGFloat {
-        guard let size
-        else { return 1.0 }
+        guard let size, size != .zero else { return 1.0 }
         return size.width / size.height
     }
     
