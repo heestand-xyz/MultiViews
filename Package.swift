@@ -14,7 +14,7 @@ let package = Package(
         .library(name: "MultiViews", targets: ["MultiViews"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/heestand-xyz/CoreGraphicsExtensions", from: "1.6.0")
+        .package(url: "https://github.com/heestand-xyz/CoreGraphicsExtensions", from: "1.8.1")
     ],
     targets: [
         .target(name: "MultiViews", dependencies: ["CoreGraphicsExtensions"]),
