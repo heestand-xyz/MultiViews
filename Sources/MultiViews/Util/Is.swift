@@ -1,14 +1,14 @@
 //
-//  SwiftUIView.swift
-//  
+//  Is.swift
+//
 //
 //  Created by Anton on 2024-01-28.
 //
 
 public var isDebug: Bool {
-    #if DEBUG
+#if DEBUG
     true
-    #else
+#else
     false
-    #endif
+#endif
 }
