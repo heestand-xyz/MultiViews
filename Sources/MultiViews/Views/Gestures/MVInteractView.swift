@@ -16,7 +16,7 @@ public enum MVInteraction {
     case exited
     case endedInside
     case endedOutside
-    var ended: Bool { [.endedInside, .endedOutside].contains(self) }
+    public var ended: Bool { [.endedInside, .endedOutside].contains(self) }
 }
     
 public struct MVInteractView: ViewRepresentable {
@@ -46,6 +46,9 @@ class MainInteractView: MPView {
     let scrolling: ((CGPoint) -> ())?
     
     private var isInside: Bool?
+#if os(macOS)
+    private var isInteracting: Bool = false
+#endif
     
     init(interacted: @escaping (MVInteraction) -> (),
          interacting: ((CGPoint) -> ())?,
@@ -93,8 +96,10 @@ class MainInteractView: MPView {
         guard let location: CGPoint = getMouseLocation() else { return }
         interacting?(location)
         isInside = true
+        isInteracting = true
     }
     override func mouseDragged(with event: NSEvent) {
+        guard isInteracting else { return }
         guard let location: CGPoint = getMouseLocation() else { return }
         let isInside: Bool = bounds.contains(location)
         if self.isInside != isInside {
@@ -104,9 +109,9 @@ class MainInteractView: MPView {
         interacting?(location)
     }
     override func mouseUp(with event: NSEvent) {
-        guard let location: CGPoint = getMouseLocation() else { return }
         interacted(isInside == true ? .endedInside : .endedOutside)
         isInside = nil
+        isInteracting = false
     }
     override func scrollWheel(with event: NSEvent) {
         scrolling?(CGPoint(x: event.scrollingDeltaX, y: event.scrollingDeltaY))
