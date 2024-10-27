@@ -16,6 +16,7 @@ public enum MVInteraction {
     case exited
     case endedInside
     case endedOutside
+    public var active: Bool { [.started, .entered].contains(self) }
     public var ended: Bool { [.endedInside, .endedOutside].contains(self) }
 }
     
