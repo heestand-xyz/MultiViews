@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreGraphicsExtensions
 
 @available(iOS 16.0, macOS 13.0, *)
 public struct BindableScrollView<Content: View>: View {
@@ -40,33 +41,33 @@ public struct BindableScrollView<Content: View>: View {
     
     @State private var isAnimating: Bool = false
     
-    @State private var containerSize: CGSize?
-    @State private var contentFrame: CGRect?
+    @State private var containerSize: CGSize = .one
+    @State private var contentFrame: CGRect = .zero
 
     private var contentOrigin: CGFloat {
         switch axis {
         case .horizontal:
-            return contentFrame?.minX ?? 0.0
+            return contentFrame.minX
         case .vertical:
-            return contentFrame?.minY ?? 0.0
+            return contentFrame.minY
         }
     }
     
     private var containerLength: CGFloat {
         switch axis {
         case .horizontal:
-            return containerSize?.width ?? 0.0
+            return containerSize.width
         case .vertical:
-            return containerSize?.height ?? 0.0
+            return containerSize.height
         }
     }
     
     private var contentLength: CGFloat {
         switch axis {
         case .horizontal:
-            return contentFrame?.size.width ?? 0.0
+            return contentFrame.size.width
         case .vertical:
-            return contentFrame?.size.height ?? 0.0
+            return contentFrame.size.height
         }
     }
     
@@ -90,7 +91,7 @@ public struct BindableScrollView<Content: View>: View {
             ScrollView(scrollAxis, showsIndicators: showsIndicators) {
                 
                 content()
-                    .read(frame: $contentFrame, in: .named(spaceIdentifier))
+                    .readGeometry(frame: $contentFrame, in: .named(spaceIdentifier))
                     .background(alignment: .topLeading) {
                         Color.clear
                             .id(contentIdentifier)
@@ -115,7 +116,7 @@ public struct BindableScrollView<Content: View>: View {
                 }
             }
         }
-        .read(size: $containerSize)
+        .readGeometry(size: $containerSize)
         .coordinateSpace(name: spaceIdentifier)
     }
     

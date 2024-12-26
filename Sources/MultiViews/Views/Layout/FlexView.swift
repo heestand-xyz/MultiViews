@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreGraphicsExtensions
 
 public struct FlexView<Content: View>: View {
     
@@ -21,10 +22,10 @@ public struct FlexView<Content: View>: View {
         self.content = content
     }
     
-    @State var size: CGSize?
+    @State var size: CGSize = .zero
     
     private var aspectRatio: CGFloat {
-        guard let size, size != .zero else { return 1.0 }
+        guard size != .zero else { return 1.0 }
         return size.width / size.height
     }
     
@@ -33,7 +34,7 @@ public struct FlexView<Content: View>: View {
             ZStack {
                 Color.clear
                 content()
-                    .read(size: $size)
+                    .readGeometry(size: $size)
                     .aspectRatio(aspectRatio, contentMode: contentMode)
                     .offset({
                         
