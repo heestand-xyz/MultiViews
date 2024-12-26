@@ -5,9 +5,9 @@ import PackageDescription
 let package = Package(
     name: "MultiViews",
     platforms: [
-        .iOS(.v14),
-        .tvOS(.v14),
-        .macOS(.v11),
+        .iOS(.v16),
+        .tvOS(.v16),
+        .macOS(.v13),
         .visionOS(.v1)
     ],
     products: [
