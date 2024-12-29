@@ -5,6 +5,7 @@ import UIKit
 #endif
 import SwiftUI
 
+@MainActor
 public protocol ViewRepresentable: MPViewRepresentable {
     associatedtype V: MPView
     func makeView(context: Self.Context) -> V

@@ -36,7 +36,7 @@ extension View {
                                 onEnd(value)
                             }
                     )
-                    .onChange(of: isDragging.wrappedValue) { isDragging in
+                    .onChange(of: isDragging.wrappedValue) { _, isDragging in
                         let isCancelled = !isDragging && isActivelyDragging.wrappedValue
                         if isCancelled {
                             isActivelyDragging.wrappedValue = false

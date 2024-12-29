@@ -100,12 +100,12 @@ public struct BindableScrollView<Content: View>: View {
                     }
             }
             .scrollDisabled(!isActive)
-            .onChange(of: offset) { offset in
+            .onChange(of: offset) { _, offset in
                 guard isMoving != false else { return }
                 guard offset != contentOrigin else { return }
                 scroll(to: offset, with: scrollViewProxy, animated: isAnimated)
             }
-            .onChange(of: contentOrigin) { contentOrigin in
+            .onChange(of: contentOrigin) { _, contentOrigin in
                 guard isMoving != true else { return }
                 guard contentOrigin != offset else { return }
                 offset = contentOrigin
@@ -136,7 +136,7 @@ public struct BindableScrollView<Content: View>: View {
                     isAnimating = false
                 }
             } else {
-                if #available(iOS 17.0, macOS 14.0, visionOS 1.0, *) {
+                if #available(iOS 17.0, macOS 14.0, *) {
                     withAnimation(.easeInOut) {
                         scrollViewProxy.scrollTo(contentIdentifier, anchor: anchor)
                     } completion: {
