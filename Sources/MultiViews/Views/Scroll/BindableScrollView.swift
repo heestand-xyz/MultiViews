@@ -100,12 +100,12 @@ public struct BindableScrollView<Content: View>: View {
                     }
             }
             .scrollDisabled(!isActive)
-            .onChange(of: offset) { _, offset in
+            .onChange(of: offset) { offset in
                 guard isMoving != false else { return }
                 guard offset != contentOrigin else { return }
                 scroll(to: offset, with: scrollViewProxy, animated: isAnimated)
             }
-            .onChange(of: contentOrigin) { _, contentOrigin in
+            .onChange(of: contentOrigin) { contentOrigin in
                 guard isMoving != true else { return }
                 guard contentOrigin != offset else { return }
                 offset = contentOrigin

@@ -27,7 +27,7 @@ public struct FrameReader: View {
                 .onAppear {
                     frame = geometry.frame(in: coordinateSpace)
                 }
-                .onChange(of: geometry.frame(in: coordinateSpace)) { _, newFrame in
+                .onChange(of: geometry.frame(in: coordinateSpace)) { newFrame in
                     frame = newFrame
                 }
                 .onDisappear {
