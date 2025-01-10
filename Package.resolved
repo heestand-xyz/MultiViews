@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/heestand-xyz/CoreGraphicsExtensions",
       "state" : {
-        "revision" : "7ddb96f057a10694ceaa4581bdaa5aa0c7eef87d",
-        "version" : "1.7.1"
+        "revision" : "a95735b2522f6e2ba9ab8a59fbf742e1723212ed",
+        "version" : "2.0.0"
       }
     }
   ],
