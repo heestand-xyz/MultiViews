@@ -78,7 +78,7 @@ class MVSpatialLongPressView<Content: View>: NSView {
         self.didEnd = didEnd
         hostingController = MPHostingController(rootView: content())
         super.init(frame: .zero)
-        addSubview(hostingController.view)
+        setupSubview()
     }
     
     required init?(coder: NSCoder) {
@@ -87,6 +87,19 @@ class MVSpatialLongPressView<Content: View>: NSView {
     
     func updateView() {
         hostingController.rootView = content()
+    }
+    
+    private func setupSubview() {
+        wantsLayer = true
+        layer?.backgroundColor = NSColor.clear.cgColor
+        addSubview(hostingController.view)
+        hostingController.view.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            hostingController.view.topAnchor.constraint(equalTo: topAnchor),
+            hostingController.view.leadingAnchor.constraint(equalTo: leadingAnchor),
+            hostingController.view.trailingAnchor.constraint(equalTo: trailingAnchor),
+            hostingController.view.bottomAnchor.constraint(equalTo: bottomAnchor),
+        ])
     }
     
     override func mouseDown(with event: NSEvent) {
