@@ -5,6 +5,7 @@ import UIKit
 #endif
 import SwiftUI
 
+@MainActor
 public protocol ViewControllerRepresentable: MPViewControllerRepresentable {
     associatedtype VC: MPViewController
     func makeViewController(context: Self.Context) -> VC
