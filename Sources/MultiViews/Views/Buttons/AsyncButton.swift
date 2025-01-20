@@ -11,7 +11,7 @@ public enum AsyncButtonStyle {
     case plain
     case pulse
     case spinner
-    public static let `default`: AsyncButtonStyle = .pulse
+    public static let `default`: AsyncButtonStyle = .plain
 }
 
 public struct AsyncButton<Label: View>: View {
