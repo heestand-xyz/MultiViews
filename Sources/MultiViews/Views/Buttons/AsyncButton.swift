@@ -22,7 +22,7 @@ public struct AsyncButton<Label: View>: View {
     
     public init(
         action: @escaping () async -> Void,
-        label: @escaping () -> Label
+        @ViewBuilder label: @escaping () -> Label
     ) {
         self.style = .default
         self.action = action
