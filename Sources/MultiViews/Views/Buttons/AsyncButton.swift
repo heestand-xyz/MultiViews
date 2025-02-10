@@ -16,25 +16,18 @@ public enum AsyncButtonStyle {
 
 public struct AsyncButton<Label: View>: View {
     
-    let style: AsyncButtonStyle
+    let role: ButtonRole?
+    var style: AsyncButtonStyle
     let action: () async -> Void
     let label: () -> Label
     
     public init(
+        role: ButtonRole? = nil,
         action: @escaping () async -> Void,
         @ViewBuilder label: @escaping () -> Label
     ) {
+        self.role = role
         self.style = .default
-        self.action = action
-        self.label = label
-    }
-    
-    init(
-        style: AsyncButtonStyle,
-        action: @escaping () async -> Void,
-        label: @escaping () -> Label
-    ) {
-        self.style = style
         self.action = action
         self.label = label
     }
@@ -43,7 +36,7 @@ public struct AsyncButton<Label: View>: View {
     @State private var runDate: Date = .now
     
     public var body: some View {
-        Button {
+        Button(role: role) {
             runDate = .now
             isRunning = true
             Task {
@@ -79,6 +72,8 @@ public struct AsyncButton<Label: View>: View {
 
 extension AsyncButton {
     public func asyncButtonStyle(_ style: AsyncButtonStyle) -> AsyncButton {
-        AsyncButton(style: style, action: action, label: label)
+        var asyncButton: AsyncButton = self
+        asyncButton.style = style
+        return asyncButton
     }
 }
