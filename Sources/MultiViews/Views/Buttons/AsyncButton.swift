@@ -10,7 +10,13 @@ import SwiftUI
 public enum AsyncButtonStyle {
     case plain
     case pulse
-    case spinner
+    public enum SpinnerStyle {
+        case leading
+        case trailing
+        /// Spinner over label with `opacity` of the underlying label. *(Default `0.0`)*
+        case over(opacity: Double = 0.0)
+    }
+    case spinner(SpinnerStyle)
     public static let `default`: AsyncButtonStyle = .plain
 }
 
@@ -55,18 +61,34 @@ public struct AsyncButton<Label: View>: View {
                         label()
                             .opacity(0.5 + fraction / 2.0)
                     }
-                case .spinner:
-                    HStack {
-                        SmallProgressView()
-                        label()
+                case .spinner(let spinnerStyle):
+                    Group {
+                        switch spinnerStyle {
+                        case .leading:
+                            HStack {
+                                SmallProgressView()
+                                label()
+                            }
+                        case .trailing:
+                            HStack {
+                                label()
+                                SmallProgressView()
+                            }
+                        case .over(let opacity):
+                            ZStack {
+                                label()
+                                    .opacity(opacity)
+                                SmallProgressView()
+                            }
+                        }
                     }
-                    .animation(.default, value: isRunning)
                 }
             } else {
                 label()
             }
         }
         .disabled(isRunning)
+        .animation(.default, value: isRunning)
     }
 }
 
