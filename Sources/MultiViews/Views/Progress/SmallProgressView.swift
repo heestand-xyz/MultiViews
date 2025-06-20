@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@available(*, deprecated, message: "Please use ProgressView().controlSize(.small)")
 public struct SmallProgressView: View {
     
     public init() {}
@@ -20,8 +21,4 @@ public struct SmallProgressView: View {
         ProgressView()
 #endif
     }
-}
-
-#Preview {
-    SmallProgressView()
 }
