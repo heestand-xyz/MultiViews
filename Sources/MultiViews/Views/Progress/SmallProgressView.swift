@@ -7,18 +7,16 @@
 
 import SwiftUI
 
-@available(*, deprecated, message: "Please use ProgressView().controlSize(.small)")
+/// Small on macOS, else regular.
+/// Bigger than ``MiniProgressView``
 public struct SmallProgressView: View {
     
     public init() {}
     
     public var body: some View {
+        ProgressView()
 #if os(macOS)
-        ProgressView()
-            .scaleEffect(0.5)
-            .padding(-8)
-#else
-        ProgressView()
+            .controlSize(.small)
 #endif
     }
 }
