@@ -61,6 +61,7 @@ public struct GlassMenu<Content: View, Label: View>: View {
                             .glassEffect(.regular.interactive().tint(backgroundColor), in: style.shape)
                     } else {
                         label()
+                            .foregroundStyle(.primary)
                             .glassEffect(.regular.interactive(), in: style.shape)
                     }
                 }
