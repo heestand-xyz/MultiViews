@@ -60,61 +60,76 @@ public struct GlassButton<Label: View>: View {
     }
     
     public var body: some View {
-        if #available(iOS 26.0, macOS 26.0, visionOS 26.0, *) {
-            AsyncButton(role: role) {
-                await action()
-            } label: {
-                Group {
-                    if let (foregroundColor, backgroundColor) = style.color {
-                        label()
-                            .foregroundStyle(foregroundColor)
-                            .glassEffect(.regular.interactive().tint(backgroundColor), in: style.shape)
-                    } else {
-                        label()
-                            .foregroundStyle(.primary)
-                            .glassEffect(.regular.interactive(), in: style.shape)
-                    }
-                }
-                .padding(hitPadding)
-                .contentShape(style.shape)
-            }
-            .asyncButtonStyle(style.asyncStyle)
-            .buttonStyle(.plain)
-            .padding(-hitPadding)
+#if !os(visionOS)
+        if #available(iOS 26.0, macOS 26.0, *) {
+            glassButton
         } else {
-            AsyncButton(role: role) {
-                await action()
-            } label: {
-                Group {
-                    if let foregroundColor: Color = style.color?.foreground {
-                        label()
-                            .foregroundStyle(foregroundColor)
-                    } else {
-                        label()
-                    }
-                }
-                .background {
-                    if let tint: Color = style.color?.background {
-                        style.shape
-                            .foregroundStyle(tint)
-                    } else {
-                        style.shape
-                            .fill(.ultraThinMaterial)
-                    }
-                }
-                .overlay {
-                    style.shape
-                        .stroke()
-                        .foregroundStyle(style.color?.foreground ?? .primary)
-                        .opacity(0.25)
-                }
-                .padding(hitPadding)
-                .contentShape(style.shape)
-            }
-            .asyncButtonStyle(style.asyncStyle)
-            .buttonStyle(.plain)
-            .padding(-hitPadding)
+            frostButton
         }
+#else
+        frostButton
+#endif
+    }
+    
+#if !os(visionOS)
+    @available(iOS 26.0, macOS 26.0, *)
+    private var glassButton: some View {
+        AsyncButton(role: role) {
+            await action()
+        } label: {
+            Group {
+                if let (foregroundColor, backgroundColor) = style.color {
+                    label()
+                        .foregroundStyle(foregroundColor)
+                        .glassEffect(.regular.interactive().tint(backgroundColor), in: style.shape)
+                } else {
+                    label()
+                        .foregroundStyle(.primary)
+                        .glassEffect(.regular.interactive(), in: style.shape)
+                }
+            }
+            .padding(hitPadding)
+            .contentShape(style.shape)
+        }
+        .asyncButtonStyle(style.asyncStyle)
+        .buttonStyle(.plain)
+        .padding(-hitPadding)
+    }
+#endif
+    
+    private var frostButton: some View {
+        AsyncButton(role: role) {
+            await action()
+        } label: {
+            Group {
+                if let foregroundColor: Color = style.color?.foreground {
+                    label()
+                        .foregroundStyle(foregroundColor)
+                } else {
+                    label()
+                }
+            }
+            .background {
+                if let tint: Color = style.color?.background {
+                    style.shape
+                        .foregroundStyle(tint)
+                } else {
+                    style.shape
+                        .fill(.ultraThinMaterial)
+                }
+            }
+            .overlay {
+                style.shape
+                    .stroke()
+                    .foregroundStyle(style.color?.foreground ?? .primary)
+                    .opacity(0.25)
+            }
+            .padding(hitPadding)
+            .contentShape(style.shape)
+        }
+        .asyncButtonStyle(style.asyncStyle)
+        .buttonStyle(.plain)
+        .padding(-hitPadding)
     }
 }
 

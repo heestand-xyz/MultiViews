@@ -48,63 +48,78 @@ public struct GlassMenu<Content: View, Label: View>: View {
         self.content = content
         self.label = label
     }
-        
+    
     public var body: some View {
-        if #available(iOS 26.0, macOS 26.0, visionOS 26.0, *) {
-            Menu {
-                content()
-            } label: {
-                Group {
-                    if let (foregroundColor, backgroundColor) = style.color {
-                        label()
-                            .foregroundStyle(foregroundColor)
-                            .glassEffect(.regular.interactive().tint(backgroundColor), in: style.shape)
-                    } else {
-                        label()
-                            .foregroundStyle(.primary)
-                            .glassEffect(.regular.interactive(), in: style.shape)
-                    }
-                }
-                .padding(hitPadding)
-                .contentShape(style.shape)
-            }
-            .menuStyle(.button)
-            .buttonStyle(.plain)
-            .padding(-hitPadding)
+#if !os(visionOS)
+        if #available(iOS 26.0, macOS 26.0, *) {
+            glassMenu
         } else {
-            Menu {
-                content()
-            } label: {
-                Group {
-                    if let foregroundColor: Color = style.color?.foreground {
-                        label()
-                            .foregroundStyle(foregroundColor)
-                    } else {
-                        label()
-                    }
-                }
-                .background {
-                    if let tint: Color = style.color?.background {
-                        style.shape
-                            .foregroundStyle(tint)
-                    } else {
-                        style.shape
-                            .fill(.ultraThinMaterial)
-                    }
-                }
-                .overlay {
-                    style.shape
-                        .stroke()
-                        .foregroundStyle(style.color?.foreground ?? .primary)
-                        .opacity(0.25)
-                }
-                .padding(hitPadding)
-                .contentShape(style.shape)
-            }
-            .menuStyle(.button)
-            .buttonStyle(.plain)
-            .padding(-hitPadding)
+            frostMenu
         }
+#else
+        frostMenu
+#endif
+    }
+
+#if !os(visionOS)
+    @available(iOS 26.0, macOS 26.0, *)
+    private var glassMenu: some View {
+        Menu {
+            content()
+        } label: {
+            Group {
+                if let (foregroundColor, backgroundColor) = style.color {
+                    label()
+                        .foregroundStyle(foregroundColor)
+                        .glassEffect(.regular.interactive().tint(backgroundColor), in: style.shape)
+                } else {
+                    label()
+                        .foregroundStyle(.primary)
+                        .glassEffect(.regular.interactive(), in: style.shape)
+                }
+            }
+            .padding(hitPadding)
+            .contentShape(style.shape)
+        }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .padding(-hitPadding)
+    }
+#endif
+    
+    private var frostMenu: some View {
+        Menu {
+            content()
+        } label: {
+            Group {
+                if let foregroundColor: Color = style.color?.foreground {
+                    label()
+                        .foregroundStyle(foregroundColor)
+                } else {
+                    label()
+                }
+            }
+            .background {
+                if let tint: Color = style.color?.background {
+                    style.shape
+                        .foregroundStyle(tint)
+                } else {
+                    style.shape
+                        .fill(.ultraThinMaterial)
+                }
+            }
+            .overlay {
+                style.shape
+                    .stroke()
+                    .foregroundStyle(style.color?.foreground ?? .primary)
+                    .opacity(0.25)
+            }
+            .padding(hitPadding)
+            .contentShape(style.shape)
+        }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .padding(-hitPadding)
     }
 }
 
