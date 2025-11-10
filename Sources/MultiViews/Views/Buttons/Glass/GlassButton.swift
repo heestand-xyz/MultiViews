@@ -6,13 +6,21 @@
 //
 
 import SwiftUI
-import MultiViews
 
 public enum GlassButtonStyleType {
-    case regular(shape: any Shape, asyncStyle: AsyncButtonStyle = .default)
-    case tinted((foreground: Color, background: Color)?, shape: any Shape, asyncStyle: AsyncButtonStyle = .default)
-    public static func tintedAccent(tintEnabled: Bool = true, shape: any Shape, asyncStyle: AsyncButtonStyle = .default) -> Self {
+    case regular(shape: GlassShape, asyncStyle: AsyncButtonStyle = .default)
+    case native(shape: GlassShape, asyncStyle: AsyncButtonStyle = .default)
+    case tinted((foreground: Color, background: Color)?, shape: GlassShape, asyncStyle: AsyncButtonStyle = .default)
+    case nativeTinted((foreground: Color, background: Color)?, shape: GlassShape, asyncStyle: AsyncButtonStyle = .default)
+    public static func tintedAccent(tintEnabled: Bool = true, shape: GlassShape, asyncStyle: AsyncButtonStyle = .default) -> Self {
         .tinted(
+            tintEnabled ? (foreground: .white, background: .accentColor) : nil,
+            shape: shape,
+            asyncStyle: asyncStyle
+        )
+    }
+    public static func nativeTintedAccent(tintEnabled: Bool = true, shape: GlassShape, asyncStyle: AsyncButtonStyle = .default) -> Self {
+        .nativeTinted(
             tintEnabled ? (foreground: .white, background: .accentColor) : nil,
             shape: shape,
             asyncStyle: asyncStyle
@@ -20,21 +28,27 @@ public enum GlassButtonStyleType {
     }
     var color: (foreground: Color, background: Color)? {
         switch self {
-        case .regular:
+        case .regular, .native:
             nil
-        case .tinted(let color, _, _):
+        case .tinted(let color, _, _), .nativeTinted(let color, _, _):
             color
         }
     }
-    var shape: some Shape {
+    var shape: GlassShape {
         switch self {
-        case .regular(let shape, _), .tinted(_, let shape, _):
-            AnyShape(shape)
+        case .regular(let shape, _),
+                .native(let shape, _),
+                .tinted(_, let shape, _),
+                .nativeTinted(_, let shape, _):
+            shape
         }
     }
     var asyncStyle: AsyncButtonStyle {
         switch self {
-        case .regular(_, let asyncStyle), .tinted(_, _, let asyncStyle):
+        case .regular(_, let asyncStyle),
+                .native(_, let asyncStyle),
+                .tinted(_, _, let asyncStyle),
+                .nativeTinted(_, _, let asyncStyle):
             asyncStyle
         }
     }
@@ -44,6 +58,7 @@ public struct GlassButton<Label: View>: View {
     
     let role: ButtonRole?
     var style: GlassButtonStyleType
+    @available(*, deprecated)
     var hitPadding: CGFloat = 0.0
     let action: () async -> Void
     let label: () -> Label
@@ -72,6 +87,36 @@ public struct GlassButton<Label: View>: View {
     }
     
 #if !os(visionOS)
+//    @available(iOS 26.0, macOS 26.0, *)
+//    private var glassButton: some View {
+//        Group {
+//            if let (_, backgroundColor) = style.color {
+//                glassAsyncButton
+//                    .buttonStyle(.glass(.regular.tint(backgroundColor)))
+//                    .buttonBorderShape(style.shape.buttonBorder)
+//            } else {
+//                glassAsyncButton
+//                    .buttonStyle(.glass(.regular))
+//                    .buttonBorderShape(style.shape.buttonBorder)
+//            }
+//        }
+//    }
+//    
+//    private var glassAsyncButton: some View {
+//        AsyncButton(role: role) {
+//            await action()
+//        } label: {
+//            if let (foregroundColor, _) = style.color {
+//                label()
+//                    .foregroundStyle(foregroundColor)
+//            } else {
+//                label()
+//                    .foregroundStyle(.primary)
+//            }
+//        }
+//        .asyncButtonStyle(style.asyncStyle)
+//    }
+    
     @available(iOS 26.0, macOS 26.0, *)
     private var glassButton: some View {
         AsyncButton(role: role) {
@@ -81,19 +126,23 @@ public struct GlassButton<Label: View>: View {
                 if let (foregroundColor, backgroundColor) = style.color {
                     label()
                         .foregroundStyle(foregroundColor)
-                        .glassEffect(.regular.interactive().tint(backgroundColor), in: style.shape)
+                        .glassEffect(.regular.interactive().tint(backgroundColor), in: style.shape.any)
                 } else {
                     label()
                         .foregroundStyle(.primary)
-                        .glassEffect(.regular.interactive(), in: style.shape)
+                        .glassEffect(.regular.interactive(), in: style.shape.any)
                 }
             }
             .padding(hitPadding)
-            .contentShape(style.shape)
+            .contentShape(style.shape.any)
         }
         .asyncButtonStyle(style.asyncStyle)
         .buttonStyle(.plain)
+        .buttonBorderShape(style.shape.buttonBorder)
         .padding(-hitPadding)
+#if !os(macOS)
+        .hoverEffect()
+#endif
     }
 #endif
     
@@ -111,21 +160,21 @@ public struct GlassButton<Label: View>: View {
             }
             .background {
                 if let tint: Color = style.color?.background {
-                    style.shape
+                    style.shape.any
                         .foregroundStyle(tint)
                 } else {
-                    style.shape
+                    style.shape.any
                         .fill(.ultraThinMaterial)
                 }
             }
             .overlay {
-                style.shape
+                style.shape.any
                     .stroke()
                     .foregroundStyle(style.color?.foreground ?? .primary)
                     .opacity(0.25)
             }
             .padding(hitPadding)
-            .contentShape(style.shape)
+            .contentShape(style.shape.any)
         }
         .asyncButtonStyle(style.asyncStyle)
         .buttonStyle(.plain)

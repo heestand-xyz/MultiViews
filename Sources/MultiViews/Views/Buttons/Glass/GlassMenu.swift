@@ -9,26 +9,37 @@ import SwiftUI
 import MultiViews
 
 public enum GlassMenuStyleType {
-    case regular(shape: any Shape)
-    case tinted((foreground: Color, background: Color)?, shape: any Shape)
-    public static func tintedAccent(tintEnabled: Bool = true, shape: any Shape) -> Self {
+    case regular(shape: GlassShape)
+    case native(shape: GlassShape)
+    case tinted((foreground: Color, background: Color)?, shape: GlassShape)
+    case nativeTinted((foreground: Color, background: Color)?, shape: GlassShape)
+    public static func tintedAccent(tintEnabled: Bool = true, shape: GlassShape) -> Self {
         .tinted(
+            tintEnabled ? (foreground: .white, background: .accentColor) : nil,
+            shape: shape
+        )
+    }
+    public static func nativeTintedAccent(tintEnabled: Bool = true, shape: GlassShape) -> Self {
+        .nativeTinted(
             tintEnabled ? (foreground: .white, background: .accentColor) : nil,
             shape: shape
         )
     }
     var color: (foreground: Color, background: Color)? {
         switch self {
-        case .regular:
+        case .regular, .native:
             nil
-        case .tinted(let color, _):
+        case .tinted(let color, _), .nativeTinted(let color, _):
             color
         }
     }
-    var shape: some Shape {
+    var shape: GlassShape {
         switch self {
-        case .regular(let shape), .tinted(_, let shape):
-            AnyShape(shape)
+        case .regular(let shape),
+                .native(let shape),
+                .tinted(_, let shape),
+                .nativeTinted(_, let shape):
+            shape
         }
     }
 }
@@ -71,19 +82,23 @@ public struct GlassMenu<Content: View, Label: View>: View {
                 if let (foregroundColor, backgroundColor) = style.color {
                     label()
                         .foregroundStyle(foregroundColor)
-                        .glassEffect(.regular.interactive().tint(backgroundColor), in: style.shape)
+                        .glassEffect(.regular.interactive().tint(backgroundColor), in: style.shape.any)
                 } else {
                     label()
                         .foregroundStyle(.primary)
-                        .glassEffect(.regular.interactive(), in: style.shape)
+                        .glassEffect(.regular.interactive(), in: style.shape.any)
                 }
             }
             .padding(hitPadding)
-            .contentShape(style.shape)
+            .contentShape(style.shape.any)
         }
         .menuStyle(.button)
         .buttonStyle(.plain)
+        .buttonBorderShape(style.shape.buttonBorder)
         .padding(-hitPadding)
+#if !os(macOS)
+        .hoverEffect()
+#endif
     }
 #endif
     
@@ -101,21 +116,21 @@ public struct GlassMenu<Content: View, Label: View>: View {
             }
             .background {
                 if let tint: Color = style.color?.background {
-                    style.shape
+                    style.shape.any
                         .foregroundStyle(tint)
                 } else {
-                    style.shape
+                    style.shape.any
                         .fill(.ultraThinMaterial)
                 }
             }
             .overlay {
-                style.shape
+                style.shape.any
                     .stroke()
                     .foregroundStyle(style.color?.foreground ?? .primary)
                     .opacity(0.25)
             }
             .padding(hitPadding)
-            .contentShape(style.shape)
+            .contentShape(style.shape.any)
         }
         .menuStyle(.button)
         .buttonStyle(.plain)
