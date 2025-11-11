@@ -148,9 +148,6 @@ public struct GlassMenu<Content: View, Label: View>: View {
         .buttonStyle(.plain)
         .buttonBorderShape(style.shape.buttonBorder)
         .padding(-hitPadding)
-#if !os(macOS)
-        .hoverEffect()
-#endif
     }
     
 #endif

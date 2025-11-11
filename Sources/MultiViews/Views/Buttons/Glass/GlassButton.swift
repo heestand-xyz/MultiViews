@@ -166,9 +166,6 @@ public struct GlassButton<Label: View>: View {
         .buttonStyle(.plain)
         .padding(-hitPadding)
         .buttonBorderShape(style.shape.buttonBorder)
-#if !os(macOS)
-        .hoverEffect()
-#endif
     }
     
 #endif
