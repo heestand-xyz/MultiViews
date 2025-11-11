@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import MultiViews
 
 public enum GlassMenuStyleType {
     case regular(shape: GlassShape)
@@ -97,7 +96,8 @@ public struct GlassMenu<Content: View, Label: View>: View {
         Group {
             if let (_, backgroundColor) = style.color {
                 nativeGlassAsyncMenu
-                    .buttonStyle(.glass(.regular.tint(backgroundColor)))
+                    .buttonStyle(.glassProminent)
+                    .tint(backgroundColor)
             } else {
                 nativeGlassAsyncMenu
                     .buttonStyle(.glass(.regular))
