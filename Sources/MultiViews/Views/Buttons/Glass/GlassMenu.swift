@@ -42,6 +42,14 @@ public enum GlassMenuStyleType {
             shape
         }
     }
+    var isNative: Bool {
+        switch self {
+        case .native, .nativeTinted:
+            true
+        case .regular, .tinted:
+            false
+        }
+    }
 }
 
 public struct GlassMenu<Content: View, Label: View>: View {
@@ -73,8 +81,52 @@ public struct GlassMenu<Content: View, Label: View>: View {
     }
 
 #if !os(visionOS)
+    
     @available(iOS 26.0, macOS 26.0, *)
+    @ViewBuilder
     private var glassMenu: some View {
+        if style.isNative {
+            nativeGlassMenu
+        } else {
+            customGlassMenu
+        }
+    }
+    
+    @available(iOS 26.0, macOS 26.0, *)
+    private var nativeGlassMenu: some View {
+        Group {
+            if let (_, backgroundColor) = style.color {
+                nativeGlassAsyncMenu
+                    .buttonStyle(.glass(.regular.tint(backgroundColor)))
+            } else {
+                nativeGlassAsyncMenu
+                    .buttonStyle(.glass(.regular))
+            }
+        }
+    }
+    
+    private var nativeGlassAsyncMenu: some View {
+        Menu {
+            content()
+        } label: {
+            if let (foregroundColor, _) = style.color {
+                label()
+                    .foregroundStyle(foregroundColor)
+            } else {
+                label()
+                    .foregroundStyle(.primary)
+            }
+        }
+        .menuStyle(.button)
+        .buttonBorderShape(style.shape.buttonBorder)
+#if !os(macOS)
+        .hoverEffect()
+#endif
+    }
+    
+    
+    @available(iOS 26.0, macOS 26.0, *)
+    private var customGlassMenu: some View {
         Menu {
             content()
         } label: {
@@ -100,6 +152,7 @@ public struct GlassMenu<Content: View, Label: View>: View {
         .hoverEffect()
 #endif
     }
+    
 #endif
     
     private var frostMenu: some View {
@@ -114,6 +167,7 @@ public struct GlassMenu<Content: View, Label: View>: View {
                     label()
                 }
             }
+            .padding(style.isNative ? (visionOS ? 8 : 6) : 0)
             .background {
                 if let tint: Color = style.color?.background {
                     style.shape.any

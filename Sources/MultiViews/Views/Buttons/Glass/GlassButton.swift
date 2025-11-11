@@ -52,13 +52,20 @@ public enum GlassButtonStyleType {
             asyncStyle
         }
     }
+    var isNative: Bool {
+        switch self {
+        case .native, .nativeTinted:
+            true
+        case .regular, .tinted:
+            false
+        }
+    }
 }
 
 public struct GlassButton<Label: View>: View {
     
     let role: ButtonRole?
     var style: GlassButtonStyleType
-    @available(*, deprecated)
     var hitPadding: CGFloat = 0.0
     let action: () async -> Void
     let label: () -> Label
@@ -87,38 +94,57 @@ public struct GlassButton<Label: View>: View {
     }
     
 #if !os(visionOS)
-//    @available(iOS 26.0, macOS 26.0, *)
-//    private var glassButton: some View {
-//        Group {
-//            if let (_, backgroundColor) = style.color {
-//                glassAsyncButton
-//                    .buttonStyle(.glass(.regular.tint(backgroundColor)))
-//                    .buttonBorderShape(style.shape.buttonBorder)
-//            } else {
-//                glassAsyncButton
-//                    .buttonStyle(.glass(.regular))
-//                    .buttonBorderShape(style.shape.buttonBorder)
-//            }
-//        }
-//    }
-//    
-//    private var glassAsyncButton: some View {
-//        AsyncButton(role: role) {
-//            await action()
-//        } label: {
-//            if let (foregroundColor, _) = style.color {
-//                label()
-//                    .foregroundStyle(foregroundColor)
-//            } else {
-//                label()
-//                    .foregroundStyle(.primary)
-//            }
-//        }
-//        .asyncButtonStyle(style.asyncStyle)
-//    }
     
     @available(iOS 26.0, macOS 26.0, *)
+    @ViewBuilder
     private var glassButton: some View {
+        if style.isNative {
+            nativeGlassButton
+        } else {
+            customGlassButton
+        }
+    }
+    
+    @available(iOS 26.0, macOS 26.0, *)
+    private var nativeGlassButton: some View {
+        Group {
+            if let (_, backgroundColor) = style.color {
+#if os(macOS)
+                nativeGlassAsyncButton
+                    .buttonStyle(.glassProminent)
+                    .tint(backgroundColor)
+#else
+                nativeGlassAsyncButton
+                    .buttonStyle(.glass(.regular.tint(backgroundColor)))
+#endif
+            } else {
+                nativeGlassAsyncButton
+                    .buttonStyle(.glass(.regular))
+            }
+        }
+    }
+    
+    private var nativeGlassAsyncButton: some View {
+        AsyncButton(role: role) {
+            await action()
+        } label: {
+            if let (foregroundColor, _) = style.color {
+                label()
+                    .foregroundStyle(foregroundColor)
+            } else {
+                label()
+                    .foregroundStyle(.primary)
+            }
+        }
+        .asyncButtonStyle(style.asyncStyle)
+        .buttonBorderShape(style.shape.buttonBorder)
+#if !os(macOS)
+        .hoverEffect()
+#endif
+    }
+    
+    @available(iOS 26.0, macOS 26.0, *)
+    private var customGlassButton: some View {
         AsyncButton(role: role) {
             await action()
         } label: {
@@ -138,12 +164,13 @@ public struct GlassButton<Label: View>: View {
         }
         .asyncButtonStyle(style.asyncStyle)
         .buttonStyle(.plain)
-        .buttonBorderShape(style.shape.buttonBorder)
         .padding(-hitPadding)
+        .buttonBorderShape(style.shape.buttonBorder)
 #if !os(macOS)
         .hoverEffect()
 #endif
     }
+    
 #endif
     
     private var frostButton: some View {
@@ -158,6 +185,7 @@ public struct GlassButton<Label: View>: View {
                     label()
                 }
             }
+            .padding(style.isNative ? (visionOS ? 8 : 6) : 0)
             .background {
                 if let tint: Color = style.color?.background {
                     style.shape.any

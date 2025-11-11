@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-public enum GlassShape: Sendable {
+public enum GlassShape: Sendable, Equatable {
     case circle
     case capsule
     case rect(cornerRadius: CGFloat)
