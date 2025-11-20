@@ -253,8 +253,8 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         
         #if os(iOS) || os(visionOS)
         let contentSize: CGSize = contentSize * zoomScale
+//        let contentOffset: CGPoint = scrollOffset - CGPoint(x: dynmaicPadding.left, y: dynmaicPadding.top)
         #endif
-        let contentOffset: CGPoint = scrollOffset - CGPoint(x: dynmaicPadding.left, y: dynmaicPadding.top)
         
         let couldNotScroll: Bool = scrollView.contentSize.width < containerSize.width && scrollView.contentSize.height < containerSize.height
         let canNotScroll: Bool = contentSize.width < containerSize.width && contentSize.height < containerSize.height
@@ -263,9 +263,9 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         }
         let sizeIsNew: Bool = roundSize(scrollView.contentSize) != roundSize(contentSize)
         #if os(iOS) || os(visionOS)
-        let offsetIsNew: Bool = !compare(scrollView.contentOffset, rhs: contentOffset)
+        let offsetIsNew: Bool = !compare(scrollView.contentOffset, rhs: scrollOffset)
         if offsetIsNew {
-            scrollView.setContentOffset(contentOffset, animated: false)
+            scrollView.setContentOffset(scrollOffset, animated: false)
         }
         if sizeIsNew {
             scrollView.contentSize = contentSize
@@ -276,9 +276,9 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
             }), forMode: .common)
         }
         #elseif os(macOS)
-        let offsetIsNew: Bool = scrollView.contentView.bounds.origin != contentOffset
+        let offsetIsNew: Bool = scrollView.contentView.bounds.origin != scrollOffset
         if offsetIsNew {
-            scrollView.contentView.setBoundsOrigin(contentOffset)
+            scrollView.contentView.setBoundsOrigin(scrollOffset)
         }
         if sizeIsNew {
             scrollView.documentView?.setFrameSize(contentSize)
@@ -401,7 +401,7 @@ extension MPScrollViewCoordinator {
     @objc func boundsChange() {
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            scrollOffset = scrollView.contentView.bounds.origin + CGPoint(x: padding.left, y: padding.top )
+            scrollOffset = scrollView.contentView.bounds.origin
             zoomScale = scrollView.magnification
         }
     }
@@ -430,7 +430,7 @@ extension MPScrollViewCoordinator: UIScrollViewDelegate {
         if let contentOffset = contentOffset {
             scrollView.contentOffset = contentOffset
         }
-        self.scrollOffset = (contentOffset ?? scrollView.contentOffset) + CGPoint(x: self.padding.left, y: self.padding.top)
+        self.scrollOffset = (contentOffset ?? scrollView.contentOffset)
     }
     
     public func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
