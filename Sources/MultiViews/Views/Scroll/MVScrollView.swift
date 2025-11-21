@@ -253,7 +253,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         
         #if os(iOS) || os(visionOS)
         let contentSize: CGSize = contentSize * zoomScale
-//        let contentOffset: CGPoint = scrollOffset - CGPoint(x: dynmaicPadding.left, y: dynmaicPadding.top)
+        let contentOffset: CGPoint = scrollOffset - CGPoint(x: dynmaicPadding.left, y: dynmaicPadding.top)
         #endif
         
         let couldNotScroll: Bool = scrollView.contentSize.width < containerSize.width && scrollView.contentSize.height < containerSize.height
@@ -263,9 +263,11 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         }
         let sizeIsNew: Bool = roundSize(scrollView.contentSize) != roundSize(contentSize)
         #if os(iOS) || os(visionOS)
-        let offsetIsNew: Bool = !compare(scrollView.contentOffset, rhs: scrollOffset)
-        if offsetIsNew {
-            scrollView.setContentOffset(scrollOffset, animated: false)
+        if !context.coordinator.isScrolling {
+            let offsetIsNew: Bool = !compare(scrollView.contentOffset, scrollOffset)
+            if offsetIsNew {
+                scrollView.setContentOffset(scrollOffset, animated: false)
+            }
         }
         if sizeIsNew {
             scrollView.contentSize = contentSize
@@ -290,7 +292,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         
         if context.coordinator.willScroll != canScroll {
             #if os(iOS) || os(visionOS)
-//            scrollView.isScrollEnabled = canScroll
+            scrollView.isScrollEnabled = canScroll
             #elseif os(macOS)
             // Not implemented
             #endif
@@ -324,7 +326,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         #endif
     }
     
-    func compare(_ lhs: CGPoint, rhs: CGPoint) -> Bool {
+    func compare(_ lhs: CGPoint, _ rhs: CGPoint) -> Bool {
         let lhs = CGPoint(x: round(lhs.x * 1_000_000) / 1_000_000,
                           y: round(lhs.y * 1_000_000) / 1_000_000)
         let rhs = CGPoint(x: round(rhs.x * 1_000_000) / 1_000_000,
