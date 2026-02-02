@@ -67,16 +67,19 @@ public struct GlassButton<Label: View>: View {
     let role: ButtonRole?
     var style: GlassButtonStyleType
     var hitPadding: CGFloat = 0.0
+    let taskName: String?
     let action: () async -> Void
     let label: () -> Label
     
     public init(
         role: ButtonRole? = nil,
+        taskName: String? = nil,
         action: @escaping () async -> Void,
         @ViewBuilder label: @escaping () -> Label,
     ) {
         self.role = role
         self.style = .regular(shape: .capsule, asyncStyle: .default)
+        self.taskName = taskName
         self.action = action
         self.label = label
     }
@@ -125,7 +128,7 @@ public struct GlassButton<Label: View>: View {
     }
     
     private var nativeGlassAsyncButton: some View {
-        AsyncButton(role: role) {
+        AsyncButton(role: role, taskName: taskName) {
             await action()
         } label: {
             if let (foregroundColor, _) = style.color {
@@ -145,7 +148,7 @@ public struct GlassButton<Label: View>: View {
     
     @available(iOS 26.0, macOS 26.0, *)
     private var customGlassButton: some View {
-        AsyncButton(role: role) {
+        AsyncButton(role: role, taskName: taskName) {
             await action()
         } label: {
             Group {
@@ -171,7 +174,7 @@ public struct GlassButton<Label: View>: View {
 #endif
     
     private var frostButton: some View {
-        AsyncButton(role: role) {
+        AsyncButton(role: role, taskName: taskName) {
             await action()
         } label: {
             Group {

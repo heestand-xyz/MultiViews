@@ -24,16 +24,19 @@ public struct AsyncButton<Label: View>: View {
     
     let role: ButtonRole?
     var style: AsyncButtonStyle
+    let taskName: String?
     let action: () async -> Void
     let label: () -> Label
     
     public init(
         role: ButtonRole? = nil,
+        taskName: String? = nil,
         action: @escaping () async -> Void,
         @ViewBuilder label: @escaping () -> Label
     ) {
         self.role = role
         self.style = .default
+        self.taskName = taskName
         self.action = action
         self.label = label
     }
@@ -45,7 +48,7 @@ public struct AsyncButton<Label: View>: View {
         Button(role: role) {
             runDate = .now
             isRunning = true
-            Task {
+            Task(name: taskName) {
                 await action()
                 isRunning = false
             }
