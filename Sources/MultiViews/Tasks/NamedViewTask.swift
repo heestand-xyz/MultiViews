@@ -16,7 +16,11 @@ extension View {
             let task = Task(name: name) {
                 await perform()
             }
-            await task.value
+            await withTaskCancellationHandler {
+                await task.value
+            } onCancel: {
+                task.cancel()
+            }
         }
     }
 
@@ -29,7 +33,11 @@ extension View {
             let task = Task(name: name) {
                 await perform()
             }
-            await task.value
+            await withTaskCancellationHandler {
+                await task.value
+            } onCancel: {
+                task.cancel()
+            }
         }
     }
 }
