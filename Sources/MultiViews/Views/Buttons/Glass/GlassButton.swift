@@ -11,7 +11,9 @@ public enum GlassButtonStyleType {
     case regular(shape: GlassShape, asyncStyle: AsyncButtonStyle = .default)
     case native(shape: GlassShape, asyncStyle: AsyncButtonStyle = .default)
     case tinted((foreground: Color, background: Color)?, shape: GlassShape, asyncStyle: AsyncButtonStyle = .default)
+    case tintedForeground(color: Color, shape: GlassShape, asyncStyle: AsyncButtonStyle = .default)
     case nativeTinted((foreground: Color, background: Color)?, shape: GlassShape, asyncStyle: AsyncButtonStyle = .default)
+    case nativeTintedForeground(color: Color, shape: GlassShape, asyncStyle: AsyncButtonStyle = .default)
     public static func tintedAccent(tintEnabled: Bool = true, shape: GlassShape, asyncStyle: AsyncButtonStyle = .default) -> Self {
         .tinted(
             tintEnabled ? (foreground: .white, background: .accentColor) : nil,
@@ -26,12 +28,14 @@ public enum GlassButtonStyleType {
             asyncStyle: asyncStyle
         )
     }
-    var color: (foreground: Color, background: Color)? {
+    var color: (foreground: Color, background: Color?)? {
         switch self {
         case .regular, .native:
             nil
         case .tinted(let color, _, _), .nativeTinted(let color, _, _):
             color
+        case .tintedForeground(let color, _, _), .nativeTintedForeground(let color, _, _):
+            (color, nil)
         }
     }
     var shape: GlassShape {
@@ -39,7 +43,9 @@ public enum GlassButtonStyleType {
         case .regular(let shape, _),
                 .native(let shape, _),
                 .tinted(_, let shape, _),
-                .nativeTinted(_, let shape, _):
+                .nativeTinted(_, let shape, _),
+                .tintedForeground(_, let shape, _),
+                .nativeTintedForeground(_, let shape, _):
             shape
         }
     }
@@ -48,15 +54,17 @@ public enum GlassButtonStyleType {
         case .regular(_, let asyncStyle),
                 .native(_, let asyncStyle),
                 .tinted(_, _, let asyncStyle),
-                .nativeTinted(_, _, let asyncStyle):
+                .nativeTinted(_, _, let asyncStyle),
+                .tintedForeground(_, _, let asyncStyle),
+                .nativeTintedForeground(_, _, let asyncStyle):
             asyncStyle
         }
     }
     var isNative: Bool {
         switch self {
-        case .native, .nativeTinted:
+        case .native, .nativeTinted, .nativeTintedForeground:
             true
-        case .regular, .tinted:
+        case .regular, .tinted, .tintedForeground:
             false
         }
     }
@@ -111,7 +119,7 @@ public struct GlassButton<Label: View>: View {
     @available(iOS 26.0, macOS 26.0, *)
     private var nativeGlassButton: some View {
         Group {
-            if let (_, backgroundColor) = style.color {
+            if let (_, backgroundColor) = style.color, let backgroundColor {
 #if os(macOS)
                 nativeGlassAsyncButton
                     .buttonStyle(.glassProminent)
@@ -153,9 +161,14 @@ public struct GlassButton<Label: View>: View {
         } label: {
             Group {
                 if let (foregroundColor, backgroundColor) = style.color {
-                    label()
-                        .foregroundStyle(foregroundColor)
-                        .glassEffect(.regular.interactive().tint(backgroundColor), in: style.shape.any)
+                    if let backgroundColor {
+                        label()
+                            .foregroundStyle(foregroundColor)
+                            .glassEffect(.regular.interactive().tint(backgroundColor), in: style.shape.any)
+                    } else {
+                        label()
+                            .foregroundStyle(foregroundColor)
+                    }
                 } else {
                     label()
                         .foregroundStyle(.primary)
