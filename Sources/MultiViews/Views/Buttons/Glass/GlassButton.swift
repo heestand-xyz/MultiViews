@@ -176,6 +176,7 @@ public struct GlassButton<Label: View>: View {
                 }
             }
             .padding(hitPadding)
+            .clipShape(style.shape.any)
             .contentShape(style.shape.any)
         }
         .asyncButtonStyle(style.asyncStyle)
