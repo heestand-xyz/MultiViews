@@ -45,16 +45,16 @@ struct SpatialLongPressView<Content: View>: ViewRepresentable {
     }
     
     func updateView(_ view: MVSpatialLongPressView<Content>, context: Context) {
-        view.updateView()
+        view.updateView(content: content)
     }
 }
 
 #if os(macOS)
 
 class MVSpatialLongPressView<Content: View>: NSView {
-    
+
     private let duration: TimeInterval
-    private let content: () -> Content
+    private var content: () -> Content
     private let didStart: (CGPoint) -> Void
     private let didEnd: (Bool, CGPoint) -> Void
     
@@ -85,10 +85,11 @@ class MVSpatialLongPressView<Content: View>: NSView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func updateView() {
+    func updateView(content: @escaping () -> Content) {
+        self.content = content
         hostingController.rootView = content()
     }
-    
+
     private func setupSubview() {
         wantsLayer = true
         layer?.backgroundColor = NSColor.clear.cgColor
@@ -141,9 +142,9 @@ class MVSpatialLongPressView<Content: View>: NSView {
 #else
 
 class MVSpatialLongPressView<Content: View>: UIView {
-    
+
     private let duration: TimeInterval
-    private let content: () -> Content
+    private var content: () -> Content
     private let didStart: (CGPoint) -> Void
     private let didEnd: (Bool, CGPoint) -> Void
     
@@ -173,10 +174,11 @@ class MVSpatialLongPressView<Content: View>: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func updateView() {
+    func updateView(content: @escaping () -> Content) {
+        self.content = content
         hostingController.rootView = content()
     }
-    
+
     private func setupSubview() {
         hostingController.view.backgroundColor = .clear
         addSubview(hostingController.view)

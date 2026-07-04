@@ -32,16 +32,17 @@ struct SecondaryView<Content: View>: NSViewRepresentable {
     }
     
     func updateNSView(_ trackpadView: SecondaryViewNSView, context: Context) {
+        context.coordinator.content = content
         context.coordinator.refresh()
     }
-    
+
     func makeCoordinator() -> Coordinator {
         Coordinator(content: content)
     }
-    
+
     class Coordinator {
 
-        private let content: () -> Content
+        var content: () -> Content
 
         var hostingController: NSHostingController<Content>?
 
