@@ -84,6 +84,8 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
     let canZoom: Bool
     
     let centering: Bool
+    let backgroundTapCount: Int
+    let backgroundTapGesture: ((CGPoint) -> Void)?
 
     let content: () -> (Content)
     
@@ -103,6 +105,8 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
                 canScroll: Binding<Bool> = .constant(true),
                 canZoom: Bool = false,
                 centering: Bool = false,
+                backgroundTapCount: Int = 1,
+                backgroundTapGesture: ((CGPoint) -> Void)? = nil,
                 content: @escaping () -> (Content) = { Color.clear })  {
         self.axis = axis
         self.padding = padding
@@ -120,6 +124,8 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         _canScroll = canScroll
         self.canZoom = canZoom
         self.centering = centering
+        self.backgroundTapCount = backgroundTapCount
+        self.backgroundTapGesture = backgroundTapGesture
         self.content = content
     }
     
@@ -172,6 +178,7 @@ public struct MVScrollView<Content: View>: ViewRepresentable {
         
         context.coordinator.scrollView = scrollView
         context.coordinator.setup()
+        context.coordinator.addBackgroundTapGesture(tapCount: backgroundTapCount, action: backgroundTapGesture)
         
         #if os(iOS) || os(visionOS)
         context.coordinator.didStartScroll = {
@@ -367,6 +374,13 @@ public class MPScrollViewCoordinator: NSObject {
     var didEndZoom: (() -> ())?
     
     let centering: Bool
+    var backgroundTapCount: Int = 1
+    var backgroundTapGesture: ((CGPoint) -> Void)?
+#if os(macOS)
+    var backgroundTapRecognizer: NSClickGestureRecognizer?
+#else
+    var backgroundTapRecognizer: UITapGestureRecognizer?
+#endif
 
     init(containerSize: CGSize,
          contentSize: CGSize,
@@ -399,6 +413,26 @@ extension MPScrollViewCoordinator {
                                                name: NSView.boundsDidChangeNotification,
                                                object: scrollView.contentView)
     }
+    
+    func addBackgroundTapGesture(tapCount: Int, action: ((CGPoint) -> Void)?) {
+        guard let action else { return }
+        backgroundTapCount = max(1, tapCount)
+        backgroundTapGesture = action
+        let gesture = NSClickGestureRecognizer(target: self, action: #selector(backgroundTap))
+        gesture.numberOfClicksRequired = backgroundTapCount
+        scrollView.addGestureRecognizer(gesture)
+        backgroundTapRecognizer = gesture
+    }
+    
+    @objc func backgroundTap(_ gesture: NSClickGestureRecognizer) {
+        guard gesture.state == .ended else { return }
+        let location = gesture.location(in: scrollView)
+        if let documentView = scrollView.documentView,
+           documentView.bounds.contains(gesture.location(in: documentView)) {
+            return
+        }
+        backgroundTapGesture?(location)
+    }
 
     @objc func boundsChange() {
         DispatchQueue.main.async { [weak self] in
@@ -411,9 +445,41 @@ extension MPScrollViewCoordinator {
 
 #else
 
-extension MPScrollViewCoordinator: UIScrollViewDelegate {
+extension MPScrollViewCoordinator: UIScrollViewDelegate, UIGestureRecognizerDelegate {
     
     func setup() {}
+    
+    func addBackgroundTapGesture(tapCount: Int, action: ((CGPoint) -> Void)?) {
+        guard let action else { return }
+        backgroundTapCount = max(1, tapCount)
+        backgroundTapGesture = action
+        let gesture = UITapGestureRecognizer(target: self, action: #selector(backgroundTap))
+        gesture.numberOfTapsRequired = backgroundTapCount
+        gesture.cancelsTouchesInView = false
+        gesture.delegate = self
+        scrollView.addGestureRecognizer(gesture)
+        backgroundTapRecognizer = gesture
+    }
+    
+    @objc func backgroundTap(_ gesture: UITapGestureRecognizer) {
+        guard gesture.state == .ended else { return }
+        backgroundTapGesture?(gesture.location(in: scrollView))
+    }
+    
+    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        guard gestureRecognizer === backgroundTapRecognizer else { return true }
+        let contentFrame = CGRect(origin: .zero,
+                                  size: CGSize(width: contentSize.width * zoomScale,
+                                               height: contentSize.height * zoomScale))
+        return !contentFrame.contains(touch.location(in: contentView))
+    }
+    
+    public func gestureRecognizer(
+        _ gestureRecognizer: UIGestureRecognizer,
+        shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+    ) -> Bool {
+        gestureRecognizer === backgroundTapRecognizer || otherGestureRecognizer === backgroundTapRecognizer
+    }
     
     public func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
         didStartScroll?()
