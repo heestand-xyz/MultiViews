@@ -287,11 +287,24 @@ private struct PlatformLongPressDragGesture: UIGestureRecognizerRepresentable {
         }
     }
 
-    final class Recognizer: UILongPressGestureRecognizer {
+    final class Recognizer: UILongPressGestureRecognizer, UIGestureRecognizerDelegate {
 
         var onPressingChanged: ((Bool) -> Void)?
 
         private var isPressing: Bool = false
+
+        /// Coexists with the gestures of the view it is attached to.
+        ///
+        /// A button keeps its touch from the moment it lands until it lifts,
+        /// and never fails, so without this the press is never recognized.
+        /// An enclosing scroll view is left out, its pan is already required
+        /// to fail by this recognizer.
+        func gestureRecognizer(
+            _ gestureRecognizer: UIGestureRecognizer,
+            shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+        ) -> Bool {
+            !(otherGestureRecognizer.view is UIScrollView)
+        }
 
         override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
             super.touchesBegan(touches, with: event)
@@ -336,6 +349,7 @@ private struct PlatformLongPressDragGesture: UIGestureRecognizerRepresentable {
         recognizer.minimumPressDuration = minimumDuration
         recognizer.allowableMovement = allowableMovement
         recognizer.cancelsTouchesInView = false
+        recognizer.delegate = recognizer
         recognizer.onPressingChanged = onPressingChanged
         recognizer.isEnabled = isEnabled
         return recognizer
@@ -364,15 +378,14 @@ private struct PlatformLongPressDragGesture: UIGestureRecognizerRepresentable {
         _ recognizer: Recognizer,
         coordinator: Coordinator
     ) {
+        guard coordinator.connectedScrollView == nil else { return }
         DispatchQueue.main.async {
-            NSLog("[LPD] connect view=\(String(describing: recognizer.view)) scroll=\(String(describing: recognizer.view?.enclosingScrollView))")
             guard
-                let scrollView = recognizer.view?.enclosingScrollView,
-                coordinator.connectedScrollView !== scrollView
+                coordinator.connectedScrollView == nil,
+                let scrollView = recognizer.view?.enclosingScrollView
             else { return }
             scrollView.panGestureRecognizer.require(toFail: recognizer)
             coordinator.connectedScrollView = scrollView
-            NSLog("[LPD] connected to scroll view")
         }
     }
 
@@ -382,7 +395,6 @@ private struct PlatformLongPressDragGesture: UIGestureRecognizerRepresentable {
     ) {
         let coordinator = context.coordinator
         let location = recognizer.location(in: nil)
-        NSLog("[LPD] state=\(recognizer.state.rawValue) location=\(location)")
 
         switch recognizer.state {
         case .began:
