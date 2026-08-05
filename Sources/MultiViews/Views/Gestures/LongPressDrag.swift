@@ -278,6 +278,7 @@ private struct PlatformLongPressDragGesture: UIGestureRecognizerRepresentable {
     final class Coordinator {
         var startLocation: CGPoint?
         var extendedPressWorkItem: DispatchWorkItem?
+        weak var connectedScrollView: UIScrollView?
 
         func reset() {
             extendedPressWorkItem?.cancel()
@@ -351,6 +352,28 @@ private struct PlatformLongPressDragGesture: UIGestureRecognizerRepresentable {
         if !isEnabled {
             context.coordinator.reset()
         }
+        connectEnclosingScrollView(recognizer, coordinator: context.coordinator)
+    }
+
+    /// Makes an enclosing scroll view's pan wait for this recognizer to fail.
+    ///
+    /// Without this the scroll view's pan claims the touch and the drag never
+    /// moves anything. Moving beyond `allowableMovement` fails this recognizer
+    /// early, so a plain swipe still scrolls.
+    private func connectEnclosingScrollView(
+        _ recognizer: Recognizer,
+        coordinator: Coordinator
+    ) {
+        DispatchQueue.main.async {
+            NSLog("[LPD] connect view=\(String(describing: recognizer.view)) scroll=\(String(describing: recognizer.view?.enclosingScrollView))")
+            guard
+                let scrollView = recognizer.view?.enclosingScrollView,
+                coordinator.connectedScrollView !== scrollView
+            else { return }
+            scrollView.panGestureRecognizer.require(toFail: recognizer)
+            coordinator.connectedScrollView = scrollView
+            NSLog("[LPD] connected to scroll view")
+        }
     }
 
     func handleUIGestureRecognizerAction(
@@ -359,6 +382,7 @@ private struct PlatformLongPressDragGesture: UIGestureRecognizerRepresentable {
     ) {
         let coordinator = context.coordinator
         let location = recognizer.location(in: nil)
+        NSLog("[LPD] state=\(recognizer.state.rawValue) location=\(location)")
 
         switch recognizer.state {
         case .began:

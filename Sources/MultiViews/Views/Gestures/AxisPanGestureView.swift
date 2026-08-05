@@ -211,18 +211,4 @@ public struct AxisPanGestureView: UIViewRepresentable {
         }
     }
 }
-
-private extension UIView {
-    
-    var enclosingScrollView: UIScrollView? {
-        var view: UIView? = superview
-        while let currentView = view {
-            if let scrollView = currentView as? UIScrollView {
-                return scrollView
-            }
-            view = currentView.superview
-        }
-        return nil
-    }
-}
 #endif
