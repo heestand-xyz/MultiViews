@@ -51,6 +51,8 @@ public class CheckerView: MPView {
         
 #if os(iOS) || os(tvOS) || os(visionOS)
         isUserInteractionEnabled = false
+#elseif os(macOS)
+        clipsToBounds = true
 #endif
     }
     
@@ -62,7 +64,7 @@ public class CheckerView: MPView {
 #if os(iOS) || os(tvOS) || os(visionOS)
             setNeedsDisplay()
 #elseif os(macOS)
-            setNeedsDisplay(frame)
+            setNeedsDisplay(bounds)
 #endif
     }
     
@@ -107,9 +109,11 @@ public class CheckerView: MPView {
         guard let context = UIGraphicsGetCurrentContext() else { return }
 #endif
         
-        context.saveGState();
+        context.saveGState()
         
-        let phase = CGSize(width: rect.width / 2, height: rect.height / 2)
+        // A dirty rect can be partial or extend beyond the view on macOS.
+        // Keep the pattern anchored to the view, independent of the redraw region.
+        let phase = CGSize(width: bounds.width / 2, height: bounds.height / 2)
         context.setPatternPhase(phase)
         
         let checker = checkerImage()
@@ -121,7 +125,7 @@ public class CheckerView: MPView {
 #endif
         context.setFillColor(color)
         
-        context.fill(CGRect(x: 0, y: 0, width: rect.width, height: rect.height))
+        context.fill(bounds)
         
         context.restoreGState()
         
